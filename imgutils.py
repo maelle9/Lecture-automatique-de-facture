@@ -92,3 +92,8 @@ def bw_scanner(image):
     # thresholding allows for removing anything in the background
     T = threshold_local(gray, 21, offset=5, method="gaussian")
     return (gray > T).astype("uint8") * 255
+
+
+def affiche(image):
+    plot_rgb(image)
+    plt.show()
