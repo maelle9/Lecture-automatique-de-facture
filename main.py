@@ -21,16 +21,16 @@ base, image = extraction_silhouette.silhouette(path_sample)
 
 img_contours, contours = contours_image.extraction_contour(image, base)
 
-imgutils.affiche(img_contours)
+#imgutils.affiche(img_contours)
 
 list = contours_image.ten_contours(contours)
 
 
 img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
 
-imgutils.affiche(img_large_contours)
+#imgutils.affiche(img_large_contours)
 
-rect = imgutils.get_receipt_contour(list)
+rect =imgutils.get_receipt_contour(list)
 img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
 
 #imgutils.affiche(img_rect)
@@ -40,8 +40,6 @@ print('rect:',rect)
 
 #######2.4
 
-tab = [[rect[1][0][0],rect[1][0][1]],
-       [rect[0][0][0],rect[0][0][1]],
-       [rect[2][0][0],rect[2][0][1]],
-       [rect[3][0][0],rect[3][0][1]]]
-print(tab)
+img_redresse = imgutils.wrap_perspective(img_rect.copy(), imgutils.contour_to_rect(rect))
+
+imgutils.affiche(img_redresse)
