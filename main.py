@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import extraction_silhouette
 import contours_image
 
-import part3
-part3.main_3()
+#import part3
+#part3.main_3()
 
 ###### début 2.2
 
@@ -35,3 +35,9 @@ img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
 #imgutils.affiche(img_rect)
 
 #######2.4
+
+tab = [[rect[1][0][0],rect[1][0][1]],
+       [rect[0][0][0],rect[0][0][1]],
+       [rect[2][0][0],rect[2][0][1]],
+       [rect[3][0][0],rect[3][0][1]]]
+print(tab)
