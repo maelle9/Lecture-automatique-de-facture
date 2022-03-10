@@ -3,16 +3,22 @@ import imgutils
 import pandas as pd
 import cv2
 import matplotlib.pyplot as plt
-import extraction_silhouette
 
-import part3
-part3.main_3()
 
 ###### début 2.2
 
-path_sample = "data/sample.jpg"
+path = "data/sample.jpg"
 
-extraction_silhouette.silhouette(path_sample)
+src = cv2.imread(path)
+Color = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+Resize = imgutils.opencv_resize(Color, 450 / Color.shape[0])
+Blur = cv2.GaussianBlur(Resize,(3,3),0)
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(5,5))
+Struct = cv2.dilate(Blur,kernel,iterations = 2)
+image = cv2.Canny(Struct,100,100,apertureSize=3)
+imgutils.plot_gray(image)
+plt.show()
+
 
 #######début 2.3
 
