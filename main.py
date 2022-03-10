@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 ###### début 2.2
 
-path = "C:/Users/ACER/Desktop/projet/sample.jpg"
+path = "data/sample.jpg"
 
 src = cv2.imread(path)
 Color = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
