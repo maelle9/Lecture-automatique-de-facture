@@ -7,7 +7,7 @@ import part3
 
 ###### début 2.2
 
-path_sample = "data/1-receipt.jpg"
+path_sample = "data/sample.jpg"
 #1167 marche
 
 base, image = extraction_silhouette.silhouette(path_sample)
@@ -43,4 +43,5 @@ img_scan = imgutils.bw_scanner(img_redresse)
 imgutils.affiche(img_scan)
 
 
-part3.main_3(img_scan)
+part3.affiche_total(img_scan)
+part3.affiche_rectangle('Facture', img_scan, (0, 255, 0), 2)
