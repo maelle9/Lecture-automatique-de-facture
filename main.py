@@ -4,7 +4,8 @@ import pandas as pd
 import cv2
 import matplotlib.pyplot as plt
 
-
+import part3
+part3.main_3()
 ###### début 2.2
 
 path = "data/sample.jpg"
