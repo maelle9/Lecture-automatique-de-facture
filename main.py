@@ -43,3 +43,7 @@ img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(r
 
 img_scan = imgutils.bw_scanner(img_redresse)
 imgutils.affiche(img_scan)
+
+
+import part3
+part3.main_3(img_scan)
