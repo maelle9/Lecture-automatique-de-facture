@@ -9,7 +9,7 @@ import contours_image
 
 ###### début 2.2
 
-path_sample = "data/sample.jpg"
+path_sample = "data/1167-receipt.jpg"
 #1167 marche
 
 base, image = extraction_silhouette.silhouette(path_sample)
@@ -33,13 +33,13 @@ img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
 rect =imgutils.get_receipt_contour(list)
 img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
 
-#imgutils.affiche(img_rect)
+imgutils.affiche(img_rect)
 
-print('rect:',rect)
 
 
 #######2.4
 
-img_redresse = imgutils.wrap_perspective(img_rect.copy(), imgutils.contour_to_rect(rect))
+img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
 
-imgutils.affiche(img_redresse)
+img_scan = imgutils.bw_scanner(img_redresse)
+imgutils.affiche(img_scan)

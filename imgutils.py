@@ -59,7 +59,7 @@ def contour_to_rect(contour):
     diff = np.diff(pts, axis=1)
     rect[1] = pts[np.argmin(diff)]
     rect[3] = pts[np.argmax(diff)]
-    return rect / 2  ## resize-ratio?
+    return rect / 1  ## resize-ratio?
 
 
 def wrap_perspective(img, rect):
