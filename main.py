@@ -3,13 +3,11 @@ import cv2
 import matplotlib.pyplot as plt
 import extraction_silhouette
 import contours_image
-
-#import part3
-#part3.main_3()
+import part3
 
 ###### début 2.2
 
-path_sample = "data/1167-receipt.jpg"
+path_sample = "data/1-receipt.jpg"
 #1167 marche
 
 base, image = extraction_silhouette.silhouette(path_sample)
@@ -45,5 +43,4 @@ img_scan = imgutils.bw_scanner(img_redresse)
 imgutils.affiche(img_scan)
 
 
-import part3
 part3.main_3(img_scan)
