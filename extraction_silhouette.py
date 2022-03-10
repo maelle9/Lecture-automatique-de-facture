@@ -11,7 +11,7 @@ def silhouette(path):
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     Struct = cv2.dilate(Blur, kernel, iterations=2)
     image = cv2.Canny(Struct, 100, 100, apertureSize=3)
-    return image
+    return Resize, image
 
 
 
