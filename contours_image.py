@@ -4,7 +4,7 @@ import pandas as pd
 
 def extraction_contour(silhouette,source):
     contours, hierarchy = cv2.findContours(silhouette, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img_contours = cv2.drawContours(source.copy(), contours, -1, (0, 255, 0), 3)
+    img_contours = cv2.drawContours(source.copy(), contours, -1, (255, 0, 0), 3)
     return img_contours, contours
 
 def list_area(list):

@@ -64,4 +64,29 @@ plt.show()
 
 #######2.4
 
+#######################code pour afficher coordonnées points sur image
+font = cv2.FONT_HERSHEY_COMPLEX
+n = rect.ravel()
+i = 0
+
+for j in n:
+    if (i % 2 == 0):
+        x = n[i]
+        y = n[i + 1]
+
+        string = str(x) + " " + str(y)
+
+        if (i == 0):
+
+            cv2.putText(base, "Arrow tip", (x, y),font, 0.5, (255, 0, 0))
+        else:
+
+            cv2.putText(base, string, (x, y), font, 0.5, (0, 255, 0))
+    i = i + 1
+
+cv2.imshow('image2', base)
+
+if cv2.waitKey(0) & 0xFF == ord('q'):
+    cv2.destroyAllWindows()
 """
+
