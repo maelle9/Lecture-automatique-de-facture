@@ -70,13 +70,15 @@ def list_chiffre_a_droite(path):
 
 
 def main_3 ():
-    path = "data/1133-receipt.jpg"
+    path = "data/1132-receipt.jpg"
 
     df = list_chiffre_a_droite(path)
 
     df['text'] = df['text'].astype(float)
     df = df.sort_values(by=['text'], ascending=False)
-    print(df.text.head(1))
+    print("LE TOTAL DE CETTE FACURE EST :", df.text.iloc[0], "(avec méthode 1)")
 
+    search_total(path)
+    print("avec méthode 2")
     affiche_rectangle ('Facture', path, (0, 255, 0), 2)
 
