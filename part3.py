@@ -1,5 +1,4 @@
 import pandas as pd
-
 from PIL import Image
 import pytesseract
 from matplotlib import pyplot as plt
@@ -31,16 +30,19 @@ def read_table_verification():
     print(df)
 
 def search_total(data):
-    index_word_total = data['text'].index("total")
-    df = pd.DataFrame(data)
-    total = "Total non trouvé"
-    df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
-    for i in range (len(df['text'])):
-        precision = -2
-        for j in range (abs(precision)*2+1): # precision
-            if (df['top'][i] == df['top'][index_word_total + precision] and df['text'][i] != "total" and df['text'][i] != "" and is_number(df['text'][i])==True):
-                total = df['text'][i]
-            precision +=1
+    total = "0"
+    try:
+        index_word_total = data['text'].index("total")
+        df = pd.DataFrame(data)
+        df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
+        for i in range (len(df['text'])):
+            precision = -2
+            for j in range (abs(precision)*2+1): # precision
+                if (df['top'][i] == df['top'][index_word_total + precision] and df['text'][i] != "total" and df['text'][i] != "" and is_number(df['text'][i])==True):
+                    total = df['text'][i]
+                precision +=1
+    except Exception:
+        print("error function - search_total")
     return total
 
 def list_texte_a_droite(image):
@@ -58,32 +60,42 @@ def is_number(num):
     else: return False
 
 def list_chiffre_a_droite(image):
-    df = list_texte_a_droite(image)
-    df.text = df.text.str.replace(',', '.')
-    df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
-    df['digit'] = [is_number(word) for word in df['text']]
-    df = df[(df['text'] != "") & (df['digit'] == True) & (df['conf'] >"60")]
-    if (df.empty):
-        print("Total non trouvé")
-    else:
-        df['text'] = df['text'].astype(float)
-        df = df.sort_values(by=['text'], ascending=False)
-        print("LE TOTAL DE CETTE FACURE EST :", df.text.iloc[0])
+    total = "0" #Pas trouvé
+    try:
+        df = list_texte_a_droite(image)
+        df.text = df.text.str.replace(',', '.')
+        df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
+        df['digit'] = [is_number(word) for word in df['text']]
+        df = df[(df['text'] != "") & (df['digit'] == True) & (df['conf'] >"60")]
+        if (df.empty):
+            print("Total non trouvé")
+        else:
+            try:
+                df['text'] = df['text'].astype(float)
+                df = df.sort_values(by=['text'], ascending=False)
+                total = df.text.iloc[0]
+            except Exception:
+                print("could not convert string to float")
+    except Exception:
+        print("error function - list_chiffre_a_droite")
+    return total
 
 
 def affiche_total (image):
     data = pytesseract.image_to_data(image, output_type=Output.DICT)
     data['text'] = [word.lower() for word in data['text']]
-    df = pd.DataFrame(data)
-    print(list(df.text))
+    #df = pd.DataFrame(data)
+    #print(list(df.text))
     if not "total" in data['text']:
-        list_chiffre_a_droite(image)
+        total = list_chiffre_a_droite(image)
     else:
         if (search_total(data) == 'Total non trouvé'):
-            print("Total non trouvé -> utilisation méthode 2")
-            list_chiffre_a_droite(image)
+            #print("Total non trouvé -> utilisation méthode 2")
+            total = list_chiffre_a_droite(image)
         else:
-            print("LE TOTAL DE CETTE FACTURE EST :", search_total(data))
+            total = search_total(data)
+            #print("LE TOTAL DE CETTE FACTURE EST :", search_total(data))
+    return total
 
 
 
