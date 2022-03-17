@@ -8,13 +8,11 @@ import re
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-def read_text (path):
-    img = Image.open(path)
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+def read_text (img):
     text = pytesseract.image_to_string(img)  # , lang = 'eng'
     return text
 
-def affiche_rectangle (window_name, image, color, thickness):
+def affiche_rectangle (image, color, thickness):
     data = pytesseract.image_to_data(image, output_type=Output.DICT)
     nbRectangle = len(data['level'])
     for i in range(nbRectangle):
@@ -38,6 +36,9 @@ def search_total(data):
         for i in range (len(df['text'])):
             precision = -2
             for j in range (abs(precision)*2+1): # precision
+                if (is_number(df['text'][i])==False):
+                    if (if_letter_before_number(df['text'][i]) != False):
+                        df.loc[i, 'text']= if_letter_before_number(df['text'][i])
                 if (df['top'][i] == df['top'][index_word_total + precision] and df['text'][i] != "total" and df['text'][i] != "" and is_number(df['text'][i])==True):
                     total = df['text'][i]
                 precision +=1
@@ -53,6 +54,13 @@ def list_texte_a_droite(image):
     df = df[(df['text'] != "") & (df['left'] > left) & (df['top'] > top)]
     return df
 
+def if_letter_before_number(num):
+    pattern = re.compile(r'^.[0-9]\d*\.[0-9]\d*|.[0-9]\d*')
+    result = pattern.match(num)
+    if result:
+        return num[1:]
+    else: return False
+
 def is_number(num):
     pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
     result = pattern.match(num)
@@ -64,7 +72,7 @@ def list_chiffre_a_droite(image):
     try:
         df = list_texte_a_droite(image)
         df.text = df.text.str.replace(',', '.')
-        df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
+        df.text = df.text.str.replace('[$,EUR,€,\',"], ', '')
         df['digit'] = [is_number(word) for word in df['text']]
         df = df[(df['text'] != "") & (df['digit'] == True) & (df['conf'] >"60")]
         if (df.empty):
@@ -82,15 +90,15 @@ def list_chiffre_a_droite(image):
 
 
 def affiche_total (image):
+    print(read_text (image))
     data = pytesseract.image_to_data(image, output_type=Output.DICT)
     data['text'] = [word.lower() for word in data['text']]
-    #df = pd.DataFrame(data)
-    #print(list(df.text))
+    print(list(data['text']))
     if not "total" in data['text']:
         total = list_chiffre_a_droite(image)
     else:
         if (search_total(data) == 'Total non trouvé'):
-            #print("Total non trouvé -> utilisation méthode 2")
+            print("Total non trouvé -> utilisation méthode 2")
             total = list_chiffre_a_droite(image)
         else:
             total = search_total(data)

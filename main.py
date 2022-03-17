@@ -6,14 +6,21 @@ import contours_image
 import part3
 import pandas as pd
 
-path = "data/sample.jpg" #34 #60 ---- 84
+path = "data/test.jpg" #34 #60 ---- 84
 
-# marche :) -> sample, 1167, 1136, 1138, 1141, 1143, 1145
-# marche pas -> 1134, 1135, 1137, 1139, 1140, 1144, 1146, 1147, 1148
 # 1191 -> ticket très dur car présence de pourboire
 
-# camille -> 1132, 1146, 1147, 1163
-# pb de cadre : 1134
+# pb de traitement de l'image : 1134
+# cadre                       : 137, 1170
+# confusion entre 8 et $      : 1135
+# perturbé par le code barre  : 1138
+# ne trouve aucun mot (traitment im) : 1139
+# image flou                  : 1140
+# pb detection total          : 1189
+# lit tout sauf les chiffres  : 1183, 1185
+# ombre du téléphonne image   : 439,86
+
+# Pour Camille 1171, 1189 ->prend total et pas grand total
 
 
 def main(path, display_image):
@@ -52,12 +59,12 @@ def main(path, display_image):
         if (display_image == True) : imgutils.affiche(img_scan)
 
         total = part3.affiche_total(img_scan)
-        if (display_image == True) : part3.affiche_rectangle('Facture', img_scan, (0, 255, 0), 2)
+        if (display_image == True) : part3.affiche_rectangle(img_scan, (0, 255, 0), 2)
 
     else: # si cadre trop petit alors on ne recadre pas l'image
         img_scan = imgutils.bw_scanner(cv2.imread(path))
         total = part3.affiche_total(img_scan)
-        if (display_image == True) : part3.affiche_rectangle('Facture', img_scan, (0, 255, 0), 2)
+        if (display_image == True) : part3.affiche_rectangle(img_scan, (0, 255, 0), 2)
 
     return total
 
