@@ -6,7 +6,7 @@ import contours_image
 import part3
 import pandas as pd
 
-path = "data/test.jpg" #34 #60 ---- 84
+path = "data/sample.jpg" #34 #60 ---- 84
 
 # 1191 -> ticket très dur car présence de pourboire
 
@@ -79,5 +79,5 @@ def table_comparaison():
     print(df)
     print(df['result'].value_counts())
 
-print("LE TOTAL EST : ", main(path, True))
-#table_comparaison()
+#print("LE TOTAL EST : ", main(path, True))
+table_comparaison()

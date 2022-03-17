@@ -1,6 +1,8 @@
 import cv2
 import pandas as pd
 
+import imgutils
+
 
 def extraction_contour(silhouette,source):
     contours, hierarchy = cv2.findContours(silhouette, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)

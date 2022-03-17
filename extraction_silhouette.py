@@ -5,7 +5,10 @@ import imgutils
 
 def silhouette(path):
     src = cv2.imread(path)
-    Resize = imgutils.opencv_resize(src, 800 / src.shape[0])
+    bordersize = 10
+    border = cv2.copyMakeBorder(src, top=bordersize, bottom=bordersize, left=0, right=bordersize,
+                                borderType=cv2.BORDER_ISOLATED, value=[0, 255, 0])
+    Resize = imgutils.opencv_resize(border, 800 / border.shape[0])
     Color = cv2.cvtColor(Resize, cv2.COLOR_BGR2GRAY)
     Blur = cv2.GaussianBlur(Color, (3, 3), 0)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))

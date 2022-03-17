@@ -88,5 +88,12 @@ cv2.imshow('image2', base)
 
 if cv2.waitKey(0) & 0xFF == ord('q'):
     cv2.destroyAllWindows()
+
+
+### rajouter une bordure
+
+bordersize = 5
+border = cv2.copyMakeBorder(src, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize,
+                                borderType=cv2.BORDER_CONSTANT, value=[0, 0, 0])
 """
 
