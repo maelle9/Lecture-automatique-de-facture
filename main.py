@@ -1,3 +1,5 @@
+import numpy as np
+
 import imgutils
 import cv2
 import matplotlib.pyplot as plt
@@ -6,34 +8,25 @@ import contours_image
 import part3
 import pandas as pd
 
-path = "data/sample.jpg" #34 #60 ---- 84
+path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
 # 1191 -> ticket très dur car présence de pourboire
 
-# pb de traitement de l'image : 1134
-# cadre                       : 137, 1170
-# confusion entre 8 et $      : 1135
-# perturbé par le code barre  : 1138
-# ne trouve aucun mot (traitment im) : 1139
-# image flou                  : 1140
-# pb detection total          : 1189
-# lit tout sauf les chiffres  : 1183, 1185
-# ombre du téléphonne image   : 439,86
+# Pour Camille 1171, 1189
 
-# Pour Camille 1171, 1189 ->prend total et pas grand total
+from skimage.exposure import rescale_intensity
+from skimage.io import imread
 
 
 def main(path, display_image):
 
-    ###### début 2.2
-
+    # --------- début 2.2 ---------
     base, image = extraction_silhouette.silhouette(path)
+    if (display_image == True):
+        imgutils.plot_gray(image)
+        plt.show()
 
-    #imgutils.plot_gray(image)
-    #plt.show()
-
-    ####### début 2.3
-
+    # --------- début 2.3 ---------
     img_contours, contours = contours_image.extraction_contour(image, base)
     if (display_image == True) : imgutils.affiche(img_contours)
     list = contours_image.ten_contours(contours)
@@ -43,7 +36,10 @@ def main(path, display_image):
     if (display_image == True) : imgutils.affiche(img_large_contours)
     rect =imgutils.get_receipt_contour(list)
 
-    if (contours_image.si_image_bien_cadre (image,contours) == True): # si cadre taille normal alors on recadre l'image
+    # ==================== Recadrage d'image ===========================
+    # si cadre détecté > 3.5 * taille de l'image
+
+    if (contours_image.si_image_bien_cadre (image,contours) == True):
 
         rect =imgutils.get_receipt_contour(list)
 
@@ -51,7 +47,7 @@ def main(path, display_image):
 
         if (display_image == True) : imgutils.affiche(img_rect)
 
-        #######2.4
+        # --------- 2.4 ---------
 
         img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
 
@@ -61,10 +57,18 @@ def main(path, display_image):
         total = part3.affiche_total(img_scan)
         if (display_image == True) : part3.affiche_rectangle(img_scan, (0, 255, 0), 2)
 
-    else: # si cadre trop petit alors on ne recadre pas l'image
-        img_scan = imgutils.bw_scanner(cv2.imread(path))
-        total = part3.affiche_total(img_scan)
-        if (display_image == True) : part3.affiche_rectangle(img_scan, (0, 255, 0), 2)
+    # ==================== Pas de recadrage d'image ===========================
+    # si cadre détecté < 3.5 * taille de l'image
+
+    else:
+        # --- amelioration de l'image -----
+        image = imread(path)
+        img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        p_low, p_high = np.percentile(img_gray, (1, 95))
+        img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
+        # --- lecture image ------
+        total = part3.affiche_total(img_gray)
+        if (display_image == True) : part3.affiche_rectangle(img_gray, (0, 255, 0), 2)
 
     return total
 
