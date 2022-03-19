@@ -91,11 +91,8 @@ app.layout = html.Div([
 ])
 
 def Image(contents, filename):
-    name = 'data/' + filename
     return html.Div([
         html.Img(src=contents, style={'height':'50%', 'width':'40%'}),
-        html.Hr(),
-        html.H5(part3.affiche_total(name))
     ])
 
 @app.callback(Output('output-image-upload', 'children'),
@@ -104,7 +101,7 @@ def Image(contents, filename):
 def update_output(list_of_contents, list_of_names):
     if list_of_contents is not None:
         children = [
-            Image(c,n)
+            Image(c)
             for c, n in
                 zip(list_of_contents, list_of_names)]
         return children
