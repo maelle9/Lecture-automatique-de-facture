@@ -48,4 +48,3 @@ def si_image_bien_cadre (image,contours):
     else:
         return True
 
-
