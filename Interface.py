@@ -1,6 +1,6 @@
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
-import part3
+import main
 
 # Load data
 app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])  # initialisation du dash app
@@ -54,7 +54,7 @@ app.layout = html.Div([
 
                     html.Div(children=[
                         #html.A(part3.affiche_total('output-image-upload')),
-                        html.A("€")],
+                        html.A("")],
                         style={
                             'width': '150px',
                             'height': '150px',
@@ -92,16 +92,23 @@ app.layout = html.Div([
 
 def Image(contents, filename):
     return html.Div([
-        html.Img(src=contents, style={'height':'50%', 'width':'40%'}),
+        html.Div([
+        html.Img(src=contents, style={'height':'50%', 'width':'40%'})]),
+        html.Div([
+            html.H6(main.main("data/" + filename, False))
+        ], style = {
+            'margin-top': '-40px',
+            'margin-left': '680px'})
     ])
 
 @app.callback(Output('output-image-upload', 'children'),
               Input('importer', 'contents'),
               State('importer', 'filename'))
+
 def update_output(list_of_contents, list_of_names):
     if list_of_contents is not None:
         children = [
-            Image(c)
+            Image(c, n)
             for c, n in
                 zip(list_of_contents, list_of_names)]
         return children

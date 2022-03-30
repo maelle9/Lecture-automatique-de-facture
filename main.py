@@ -1,5 +1,4 @@
 import numpy as np
-
 import imgutils
 import cv2
 import matplotlib.pyplot as plt
@@ -7,6 +6,7 @@ import extraction_silhouette
 import contours_image
 import part3
 import pandas as pd
+import test_traitement_image
 
 path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
@@ -20,13 +20,17 @@ from skimage.io import imread
 
 def main(path, display_image):
 
-    # --------- début 2.2 ---------
     base, image = extraction_silhouette.silhouette(path)
+    #test_traitement_image.test_morpho(image)
+    #base_morpho = cv2.imread("data/output.jpg")
+    # --------- début 2.2 ---------
+
     if (display_image == True):
         imgutils.plot_gray(image)
         plt.show()
 
     # --------- début 2.3 ---------
+
     img_contours, contours = contours_image.extraction_contour(image, base)
     if (display_image == True) : imgutils.affiche(img_contours)
     list = contours_image.ten_contours(contours)
@@ -34,14 +38,14 @@ def main(path, display_image):
     img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
 
     if (display_image == True) : imgutils.affiche(img_large_contours)
-    rect =imgutils.get_receipt_contour(list)
+
 
     # ==================== Recadrage d'image ===========================
     # si cadre détecté > 3.5 * taille de l'image
 
     if (contours_image.si_image_bien_cadre (image,contours) == True):
 
-        rect =imgutils.get_receipt_contour(list)
+        rect = imgutils.get_receipt_contour(list)
 
         img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
 
@@ -83,5 +87,6 @@ def table_comparaison():
     print(df)
     print(df['result'].value_counts())
 
-#print("LE TOTAL EST : ", main(path, True))
+#print("LE TOTAL EST : ", main("data/1198-receipt.jpg", True))
 table_comparaison()
+
