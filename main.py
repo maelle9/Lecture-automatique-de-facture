@@ -19,23 +19,24 @@ from skimage.io import imread
 
 
 def main(path, display_image):
+    base_o, image_o = extraction_silhouette.silhouette(path)
+    test_traitement_image.test_morpho(path)
 
-    base, image = extraction_silhouette.silhouette(path)
-    #test_traitement_image.test_morpho(image)
-    #base_morpho = cv2.imread("data/output.jpg")
+    base, image = extraction_silhouette.silhouette("data/output.jpg")
+
     # --------- début 2.2 ---------
 
     if (display_image == True):
-        imgutils.plot_gray(image)
+        imgutils.plot_gray(base_o)
         plt.show()
 
     # --------- début 2.3 ---------
 
-    img_contours, contours = contours_image.extraction_contour(image, base)
+    img_contours, contours = contours_image.extraction_contour(image, base_o)
     if (display_image == True) : imgutils.affiche(img_contours)
     list = contours_image.ten_contours(contours)
 
-    img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
+    img_large_contours = cv2.drawContours(base_o.copy(), list, -1, (255, 0, 0), 3)
 
     if (display_image == True) : imgutils.affiche(img_large_contours)
 
@@ -47,13 +48,13 @@ def main(path, display_image):
 
         rect = imgutils.get_receipt_contour(list)
 
-        img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
+        img_rect = cv2.drawContours(base_o.copy(), rect, -1, (0, 255, 0), 3)
 
         if (display_image == True) : imgutils.affiche(img_rect)
 
         # --------- 2.4 ---------
 
-        img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
+        img_redresse = imgutils.wrap_perspective(base_o.copy(), imgutils.contour_to_rect(rect))
 
         img_scan = imgutils.bw_scanner(img_redresse)
         if (display_image == True) : imgutils.affiche(img_scan)
@@ -77,16 +78,20 @@ def main(path, display_image):
     return total
 
 def table_comparaison():
-    df = pd.read_csv("table_de_verification.csv", sep=';')
+    df = pd.read_csv("table_de_verification_dataset.csv", sep=';')
     for i in range (len(df)):
         num = df.loc[i,'numero']
         print(num)
-        total = main("data/" + str(num) +"-receipt.jpg", False)
+        total = main("dataset/" + str(num) +"-receipt.jpg", False)
         df.loc[i, 'total_obtenu'] = total
     df["result"] = df.apply(lambda row: True if float(row["total"]) == float(row["total_obtenu"]) else False, axis = 1)
+    count = df['result'].value_counts()
+    vrai = len(df[df['result'] == True])
+    print('pourcentage', (int(vrai)/len(df))*100)
     print(df)
-    print(df['result'].value_counts())
+    print(count)
 
-#print("LE TOTAL EST : ", main("data/1198-receipt.jpg", True))
+
+#print("LE TOTAL EST : ", main("data/1159-receipt.jpg", True))
 table_comparaison()
 
