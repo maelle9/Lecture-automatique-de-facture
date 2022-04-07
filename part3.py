@@ -15,8 +15,8 @@ def read_text_pytesseract (img):
 def read_text_paddle(img):
     ocr = PaddleOCR(use_angle_cls=True, lang='en')
     result = ocr.ocr(img, cls=True)
-    for line in result:
-        print(line[1][0])
+    #for line in result:
+        #print(line[1][0])
 
 
 def affiche_rectangle (image, color, thickness):
@@ -44,24 +44,26 @@ def if_somethings_before_number(num):
         return False
 
 def affiche_total(image):
-    print(read_text_pytesseract(image))
+    #print(read_text_pytesseract(image))
     #df = df_pytesseract(image)
     df = df_paddle(image)
+    total = '0'
+    if(df.empty == False):
+        df['text'] = df['text'].str.lower()
+        #print("ici:",df['text'])
+        df.text = df.text.str.replace(',', '.')
+        df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
+        df = df[(df['text'] != "") & (df['conf'] > "50")]
+        df['digit'] = [is_number(word) for word in df['text']]
 
-    df['text'] = df['text'].str.lower()
-    df.text = df.text.str.replace(',', '.')
-    df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
-    df = df[(df['text'] != "") & (df['conf'] > "50")]
-    df['digit'] = [is_number(word) for word in df['text']]
-
-    if not "total" in list(df['text']):
-        total = list_chiffre_a_droite(image,df)
-    else:
-        if (search_total(df) == '0'):
-            print("methode chiffre à droite")
+        if not "total" in list(df['text']):
             total = list_chiffre_a_droite(image,df)
         else:
-            total = search_total(df)
+            if (search_total(df) == '0'):
+                #print("methode chiffre à droite")
+                total = list_chiffre_a_droite(image,df)
+            else:
+                total = search_total(df)
     return total
 
 def df_pytesseract(image):
@@ -95,7 +97,7 @@ def search_total(df):
         df['text'] = df['text'].astype(float)
         df = df[(df['top'] < top_word_total+3) & (df['top'] > top_word_total-3)]
         total = select_le_plus_grand_chiffre(df)
-        print(df[['top', 'left', 'height', 'conf', 'text']])
+        #print(df[['top', 'left', 'height', 'conf', 'text']])
     except Exception:
         print("error function - search_total 2")
     return total
@@ -110,7 +112,7 @@ def elimination_des_mots_parasites(df): # A FINIR
         df['text'] = df['text'].astype(float)
         df = df[(df['top'] < top_word_total+3) & (df['top'] > top_word_total-3)]
         total = select_le_plus_grand_chiffre(df)
-        print(df[['top', 'left', 'height', 'conf', 'text']])
+        #print(df[['top', 'left', 'height', 'conf', 'text']])
     except Exception:
         print("error function - elimination_des_mots_parasites")
     return total
@@ -121,7 +123,7 @@ def list_chiffre_a_droite(image,df):
     top = int(image.shape[0]/3)
     df = df[(df['text'] != "") & (df['left'] > left) & (df['top'] > top) & (df['digit'] == True)]
     total = select_le_plus_grand_chiffre(df)
-    print(df[['top','left','height','conf','text']])
+    #print(df[['top','left','height','conf','text']])
     return total
 
 def select_le_plus_grand_chiffre(df):

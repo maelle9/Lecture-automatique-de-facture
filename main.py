@@ -7,6 +7,7 @@ import contours_image
 import part3
 import pandas as pd
 import test_traitement_image
+import prétraitement
 
 path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
@@ -19,8 +20,9 @@ from skimage.io import imread
 
 
 def main(path, display_image):
+    img = prétraitement.pretraitement(path)
     base_o, image_o = extraction_silhouette.silhouette(path)
-    test_traitement_image.test_morpho(path)
+    test_traitement_image.test_morpho(img)
 
     base, image = extraction_silhouette.silhouette("data/output.jpg")
 
@@ -67,8 +69,9 @@ def main(path, display_image):
 
     else:
         # --- amelioration de l'image -----
-        image = imread(path)
-        img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        img = cv2.imread(path)
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        #image = prétraitement.pretraitement(path)
         p_low, p_high = np.percentile(img_gray, (1, 95))
         img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
         # --- lecture image ------
@@ -92,6 +95,6 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("data/1159-receipt.jpg", True))
+#print("LE TOTAL EST : ", main("dataset/1009-modif.jpg", True))
 table_comparaison()
 
