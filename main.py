@@ -11,6 +11,7 @@ import prétraitement
 
 # nouveau test ordi pour maëlle
 #test 2
+#### a marche paaaaaas
 path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
 # 1191 -> ticket très dur car présence de pourboire
