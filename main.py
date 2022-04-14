@@ -10,7 +10,7 @@ import test_traitement_image
 import prétraitement
 
 # nouveau test ordi pour maëlle
-#test 2
+#test 2 pourquoi
 #### a marche paaaaaas
 path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
