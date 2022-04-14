@@ -6,8 +6,8 @@ from skimage.exposure import rescale_intensity
 
 import imgutils
 
-def silhouette(path):
-    src = cv2.imread(path)
+def silhouette(src):
+    #src = cv2.imread(path)
     bordersize = 10
     border = cv2.copyMakeBorder(src, top=bordersize, bottom=bordersize, left=0, right=bordersize,
                                 borderType=cv2.BORDER_ISOLATED, value=[0, 0, 0])

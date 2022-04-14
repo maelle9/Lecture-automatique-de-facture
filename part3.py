@@ -44,13 +44,13 @@ def if_somethings_before_number(num):
         return False
 
 def affiche_total(image):
-    #print(read_text_pytesseract(image))
+    print(read_text_pytesseract(image))
     #df = df_pytesseract(image)
     df = df_paddle(image)
     total = '0'
     if(df.empty == False):
         df['text'] = df['text'].str.lower()
-        #print("ici:",df['text'])
+        print("ici:",df['text'])
         df.text = df.text.str.replace(',', '.')
         df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
         df = df[(df['text'] != "") & (df['conf'] > "50")]
@@ -60,10 +60,28 @@ def affiche_total(image):
             total = list_chiffre_a_droite(image,df)
         else:
             if (search_total(df) == '0'):
-                #print("methode chiffre à droite")
+                print("methode chiffre à droite")
                 total = list_chiffre_a_droite(image,df)
             else:
                 total = search_total(df)
+    else:
+        df2 = df_pytesseract(image)
+        if (df2.empty == False):
+            df2['text'] = df2['text'].str.lower()
+            print("ici:",df['text'])
+            df2.text = df2.text.str.replace(',', '.')
+            df2.text = df2.text.str.replace('[$,EUR,€,\',"]', '')
+            df2 = df2[(df2['text'] != "") & (df2['conf'] > "50")]
+            df2['digit'] = [is_number(word) for word in df2['text']]
+
+            if not "total" in list(df2['text']):
+                total = list_chiffre_a_droite(image, df2)
+            else:
+                if (search_total(df2) == '0'):
+                    print("methode chiffre à droite")
+                    total = list_chiffre_a_droite(image, df2)
+                else:
+                    total = search_total(df2)
     return total
 
 def df_pytesseract(image):
