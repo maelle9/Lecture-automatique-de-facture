@@ -1,5 +1,4 @@
 import pandas as pd
-from PIL import Image
 import pytesseract
 from matplotlib import pyplot as plt
 from pytesseract import Output
@@ -39,7 +38,7 @@ def is_number(num):
 def affiche_total(image):
     df = df_pytesseract(image)
     #df = df_paddle(image)
-    print(list(df['text']))
+    #print(list(df['text']))
     total = '0'
     if(df.empty == False):
         df['text'] = df['text'].astype(str).str.lower()
@@ -58,8 +57,7 @@ def affiche_total(image):
         if not "total" in list(df['text']):
             df = elimination_des_mots_parasites(df)
             total = list_chiffre_a_droite(image,df)
-        else:
-            print("mot total trouvé")
+        else: #"mot total trouvé"
             if (search_total(df) == '0'):
                 df = elimination_des_mots_parasites(df)
                 total = list_chiffre_a_droite(image,df)
@@ -100,7 +98,7 @@ def search_total(df):
         df_digit["total_word"] = df_digit.apply(lambda row: True if "total" in row["list"] else False ,axis=1)
         df_digit = df_digit[(df_digit['total_word'] == True)]
         total = select_le_plus_grand_chiffre(df_digit[(df_digit['conf'] > "55")])
-        print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
+        #print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
     except Exception:
         print("error function - search_total")
     return total
@@ -117,13 +115,11 @@ def mot_parasites (list):
 
 def elimination_des_mots_parasites(df):
     try:
-        print("elimination_des_mots_parasites")
         df_not_digit = df[(df['digit'] == False)]
         df_digit = df[(df['digit'] == True)]
         df_digit["list"] = df_digit.apply(lambda row: find_text_on_the_same_line(row["top"],row["text"], df_not_digit) ,axis=1)
         df_digit["total_word"] = df_digit.apply(lambda row: mot_parasites(row["list"]),axis=1)
         df_digit = df_digit[(df_digit['total_word'] == False)]
-        print(df_digit)
     except Exception:
         print("error function - elimination_des_mots_parasites")
     return df_digit
@@ -133,26 +129,20 @@ def list_chiffre_a_droite(image,df):
     top = int(image.shape[0]/4)
     df = df[(df['text'] != "") & (df['left'] > left) & (df['top'] > top) & (df['digit'] == True)]
     total = select_le_plus_grand_chiffre(df[(df['conf'] > "75")])
-    print(df[['top','left','height','conf','text']])
     return total
 
 def select_le_plus_grand_chiffre(df):
     df = verifie_si_chiffre_pas_en_2_parties(df)
     total = '0'
-    if (len(df) == 1):
-        total = list(df['text'])[0]
+    if (len(df) == 1): total = list(df['text'])[0]
     elif (len(df) > 1):
         df = df[df['text'].notnull()].copy()
         df['text'] = df['text'].astype(float)
         moyenne_hauteur = df.height.mean()
         df = df[(df['text'] < 40000) & (df['height'] >= moyenne_hauteur-1)]
         df = df.sort_values(by=['text'], ascending=False)
-        print('select_le_plus_grand_chiffre')
-        print(df)
-        if (len(df) > 0) :
-            total = list(df['text'])[0]
-    else:
-        print("Liste vide - Pas de total trouvé")
+        if (len(df) > 0) : total = list(df['text'])[0]
+    else: print("Liste vide - Pas de total trouvé")
     return total
 
 def verifie_si_chiffre_pas_en_2_parties(df):
