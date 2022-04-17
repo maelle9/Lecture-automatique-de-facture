@@ -5,16 +5,15 @@ import imgutils
 from matplotlib import pyplot as plt
 
 
-def test_morpho(path):
+def test_morpho(img):
     # Read image
-    img = cv2.imread(path)
+    #img = cv2.imread(path)
+    #gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    #gray += 70
+    #self.array_alpha = np.array([1.75])
+    #cv2.multiply(gray, self.array_alpha, gray)
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray += 30
-    self.array_alpha = np.array([1.75])
-    cv2.multiply(gray, self.array_alpha, gray)
-
-    th, im_th = cv2.threshold(gray, 0, 255,
+    th, im_th = cv2.threshold(img, 0, 255,
                                     cv2.THRESH_BINARY_INV +
                                     cv2.THRESH_OTSU)
     #Copy the thresholded image.
