@@ -9,9 +9,7 @@ import pandas as pd
 import test_traitement_image
 import prétraitement
 
-# nouveau test ordi pour maëlle
-#test 2 pourquoi
-#### a marche paaaaaas
+
 path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
 # 1191 -> ticket très dur car présence de pourboire
@@ -62,6 +60,8 @@ def main(path, display_image):
 
         img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
 
+        cv2.imwrite('data/output.jpg', img_redresse)
+        img_redresse = cv2.imread("data/output.jpg")
         img_scan = imgutils.bw_scanner(img_redresse)
         if (display_image == True) : imgutils.affiche(img_scan)
 
@@ -99,6 +99,6 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("dataset/1175-receipt.jpg", True))
+#print("LE TOTAL EST : ", main("dataset/1000-receipt.jpg", True))
 table_comparaison()
 
