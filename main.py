@@ -9,7 +9,6 @@ import pandas as pd
 import test_traitement_image
 import prétraitement
 
-
 path = "data/1183-receipt.jpg" #34 #60 ---- 84
 
 # 1191 -> ticket très dur car présence de pourboire
@@ -22,25 +21,24 @@ from skimage.io import imread
 
 def main(path, display_image):
     img = prétraitement.pretraitement(path)
-    #base_o, image_o = extraction_silhouette.silhouette(path)
-    base, image = extraction_silhouette.silhouette(img)
-    test_traitement_image.test_morpho(image)
-    image_f = cv2.imread("data/output.jpg")
-    image_f = cv2.cvtColor(image_f, cv2.COLOR_BGR2GRAY)
+    base_o, image_o = extraction_silhouette.silhouette(path)
+    test_traitement_image.test_morpho(img)
+
+    base, image = extraction_silhouette.silhouette("data/output.jpg")
 
     # --------- début 2.2 ---------
 
     if (display_image == True):
-        imgutils.plot_gray(img)
+        imgutils.plot_gray(base_o)
         plt.show()
 
     # --------- début 2.3 ---------
 
-    img_contours, contours = contours_image.extraction_contour(image_f, base)
+    img_contours, contours = contours_image.extraction_contour(image, base_o)
     if (display_image == True) : imgutils.affiche(img_contours)
     list = contours_image.ten_contours(contours)
 
-    img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
+    img_large_contours = cv2.drawContours(base_o.copy(), list, -1, (255, 0, 0), 3)
 
     if (display_image == True) : imgutils.affiche(img_large_contours)
 
@@ -48,20 +46,18 @@ def main(path, display_image):
     # ==================== Recadrage d'image ===========================
     # si cadre détecté > 3.5 * taille de l'image
 
-    if (contours_image.si_image_bien_cadre (image_f,contours) == True):
+    if (contours_image.si_image_bien_cadre (image,contours) == True):
 
         rect = imgutils.get_receipt_contour(list)
 
-        img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
+        img_rect = cv2.drawContours(base_o.copy(), rect, -1, (0, 255, 0), 3)
 
         if (display_image == True) : imgutils.affiche(img_rect)
 
         # --------- 2.4 ---------
 
-        img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
+        img_redresse = imgutils.wrap_perspective(base_o.copy(), imgutils.contour_to_rect(rect))
 
-        cv2.imwrite('data/output.jpg', img_redresse)
-        img_redresse = cv2.imread("data/output.jpg")
         img_scan = imgutils.bw_scanner(img_redresse)
         if (display_image == True) : imgutils.affiche(img_scan)
 
@@ -74,13 +70,13 @@ def main(path, display_image):
     else:
         # --- amelioration de l'image -----
         img = cv2.imread(path)
-        print(path)
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        #image = prétraitement.pretraitement(path)
         p_low, p_high = np.percentile(img_gray, (1, 95))
-        image = rescale_intensity(img_gray, in_range=(p_low, p_high))
+        img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
         # --- lecture image ------
-        total = part3.affiche_total(image)
-        if (display_image == True) : part3.affiche_rectangle(image, (0, 255, 0), 2)
+        total = part3.affiche_total(img_gray)
+        if (display_image == True) : part3.affiche_rectangle(img_gray, (0, 255, 0), 2)
 
     return total
 
@@ -99,6 +95,5 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("dataset/1000-receipt.jpg", True))
+#print("LE TOTAL EST : ", main("dataset/1009-modif.jpg", True))
 table_comparaison()
-
