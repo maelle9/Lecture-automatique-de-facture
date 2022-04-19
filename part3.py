@@ -1,9 +1,9 @@
+import pandas as pd
 import pytesseract
 from matplotlib import pyplot as plt
 from pytesseract import Output
 import cv2  # pip install opencv-python
 from paddleocr import PaddleOCR
-import pandas as pd
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
