@@ -92,5 +92,5 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("data/1133-receipt.jpg", False))
+#print("LE TOTAL EST : ", main("data/1165-receipt.jpg", False))
 table_comparaison()

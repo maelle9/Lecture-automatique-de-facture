@@ -115,10 +115,13 @@ def search_total(df):
     try:
         total = '0'
         df_not_digit = df[(df['digit'] == False)]
+        left = df_not_digit[(df_not_digit['text'] == 'total')]
+        left = list(left['left'])
+        left = left[0]
         df_digit = df[(df['digit'] == True)]
         df_digit["list"] = df_digit.apply(lambda row: find_text_on_the_same_line(row["top"],row["text"], df_not_digit) ,axis=1)
         df_digit["total_word"] = df_digit.apply(lambda row: True if "total" in row["list"] else False ,axis=1)
-        df_digit = df_digit[(df_digit['total_word'] == True)]
+        df_digit = df_digit[(df_digit['total_word'] == True) & (df_digit['left'] > left)]
         total = select_le_plus_grand_chiffre(df_digit[(df_digit['conf'] > "55")])
         #print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
     except Exception:
