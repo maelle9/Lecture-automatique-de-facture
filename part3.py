@@ -38,7 +38,7 @@ def is_number(num):
 def clean_df (df):
     df['text'] = df['text'].astype(str).str.lower()
     df.text = df.text.str.replace(',', '.')
-    df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
+    df.text = df.text.str.replace('[$,EUR,€,;,:,=,\',"]', '')
     df = df[(df['text'] != "") & (df['conf'] > "10")]  # 79
     df.text = df.text.str.lower()
 
@@ -108,7 +108,7 @@ def df_paddle(image):
     return df
 
 def find_text_on_the_same_line (top, text, df):
-    df = df[(df['top'] > top-3) & (df['top'] < top+3) & (df['text'] != text)]
+    df = df[(df['top'] > top-5) & (df['top'] < top+5) & (df['text'] != text)]
     return list(df['text'])
 
 def search_total(df):

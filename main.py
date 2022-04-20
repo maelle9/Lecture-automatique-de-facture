@@ -9,15 +9,12 @@ import pandas as pd
 import test_traitement_image
 import prétraitement
 
-path = "data/1183-receipt.jpg" #34 #60 ---- 84
-
 # 1191 -> ticket très dur car présence de pourboire
 
 # Pour Camille 1171, 1189
 
 from skimage.exposure import rescale_intensity
 from skimage.io import imread
-
 
 def main(path, display_image):
     img = prétraitement.pretraitement(path)
@@ -95,5 +92,5 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("dataset/1009-modif.jpg", True))
+#print("LE TOTAL EST : ", main("data/1133-receipt.jpg", False))
 table_comparaison()
