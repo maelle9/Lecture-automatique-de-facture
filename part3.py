@@ -7,6 +7,8 @@ from paddleocr import PaddleOCR
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
+liste_total = ['total', 'totale', 'tot', 'tota', 'otal', 'due', 'amt', 'amount', 'balance']
+
 def read_text_pytesseract (img):
     text = pytesseract.image_to_string(img)  # , lang = 'eng'
     return text
@@ -36,12 +38,22 @@ def is_number(num):
         return False
 
 def clean_df (df):
+    df = df[["top","left","height","width","conf","text"]]
     df['text'] = df['text'].astype(str).str.lower()
     df.text = df.text.str.replace(',', '.')
-    df.text = df.text.str.replace('[$,EUR,€,;,:,=,\',"]', '')
+    df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
+    df.text = df.text.str.replace('[;,:,=]', ' ')
     df = df[(df['text'] != "") & (df['conf'] > "10")]  # 79
     df.text = df.text.str.lower()
-
+    if(df.empty == False):
+        DF = pd.DataFrame()
+        for index, row in df.iterrows():
+            liste_text = row['text'].split()
+            for i in range (len(liste_text)):
+                row_add = pd.Series([row['top'],row['left'],row['height'],row['width'],row['conf'],liste_text[i]], index=df.columns)
+                DF = DF.append(row_add, ignore_index=True)
+        df = DF.copy()
+    print(df)
     # Is somethings before number - S'il y a un caractère devant un chiffre alors on l'enleve car il s'agit probablement d'un "$" mal lu
     try:
         df["text"] = df.apply(lambda row:row["text"][1:] if (row["text"][0] != '.' and is_number(row["text"][0]) == False and is_number(row["text"][1:]) == True)
@@ -55,16 +67,23 @@ def clean_df (df):
 def affiche_total(image):
     df_pytes = df_pytesseract(image)
     df_padd = df_paddle(image)
-    #print(list(df['text']))
     total = '0'
+    synonyme_total_trouver = False
     if(df_padd.empty == False and df_pytes.empty == False):
         df_pytes = clean_df(df_pytes)
         df_padd = clean_df(df_padd)
-        if "total" in list(df_padd['text']):
-            total = search_total(df_padd)
-        else:
-            if "total" in list(df_pytes['text']):
-                total = search_total(df_pytes)
+        print(list(df_pytes['text']))
+        print(list(df_padd['text']))
+        for i in range (len(liste_total)):
+            if liste_total[i] in list(df_padd['text']):
+                total = search_total(df_padd)
+                synonyme_total_trouver = True
+                break
+        if (synonyme_total_trouver == False):
+            for i in range(len(liste_total)):
+                if liste_total[i] in list(df_pytes['text']):
+                    total = search_total(df_pytes)
+                    break
         if (total == '0'):
             df_padd = elimination_des_mots_parasites(df_padd)
             total = list_chiffre_a_droite(image,df_padd)
@@ -73,14 +92,18 @@ def affiche_total(image):
             total = list_chiffre_a_droite(image,df_pytes)
     else:
         if(df_padd.empty == False):
-            if "total" in list(df_padd['text']):
-                total = search_total(df_padd)
+            for i in range(len(liste_total)):
+                if liste_total[i] in list(df_padd['text']):
+                    total = search_total(df_padd)
+                    break
             if (total == '0'):
                 df_padd = elimination_des_mots_parasites(df_padd)
                 total = list_chiffre_a_droite(image, df_padd)
         if(df_pytes.empty == False and total == '0'):
-            if "total" in list(df_pytes['text']):
-                total = search_total(df_pytes)
+            for i in range(len(liste_total)):
+                if liste_total[i] in list(df_pytes['text']):
+                    total = search_total(df_pytes)
+                    break
             if (total == '0'):
                 df_pytes = elimination_des_mots_parasites(df_pytes)
                 total = list_chiffre_a_droite(image, df_pytes)
@@ -108,22 +131,38 @@ def df_paddle(image):
     return df
 
 def find_text_on_the_same_line (top, text, df):
-    df = df[(df['top'] > top-5) & (df['top'] < top+5) & (df['text'] != text)]
+    df = df[(df['top'] > top-10) & (df['top'] < top+10) & (df['text'] != text)]
     return list(df['text'])
+
+
+def mot_total (list):
+    presence = False
+    for i in range (len(liste_total)):
+        if (liste_total[i] in list):
+            presence = True
+            break
+    return presence
 
 def search_total(df):
     try:
         total = '0'
         df_not_digit = df[(df['digit'] == False)]
-        left = df_not_digit[(df_not_digit['text'] == 'total')]
-        left = list(left['left'])
-        left = left[0]
         df_digit = df[(df['digit'] == True)]
         df_digit["list"] = df_digit.apply(lambda row: find_text_on_the_same_line(row["top"],row["text"], df_not_digit) ,axis=1)
-        df_digit["total_word"] = df_digit.apply(lambda row: True if "total" in row["list"] else False ,axis=1)
-        df_digit = df_digit[(df_digit['total_word'] == True) & (df_digit['left'] > left)]
+        df_digit["total_word"] = df_digit.apply(lambda row: mot_total(row["list"]),axis=1)
+        df_digit = df_digit[(df_digit['total_word'] == True)]
+
+        df_not_digit["total_word"] = df_not_digit.apply(lambda row: True if row["text"] in liste_total else False,axis=1)
+        df_not_digit = df_not_digit[(df_not_digit['total_word'] == True)]
+
+        left = min(list(df_not_digit['left']))
+
+        print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
+        print(df_not_digit[['top', 'left', 'height', 'conf', 'text']])
+
+        df_digit = df_digit[(df_digit['left'] > left)]
         total = select_le_plus_grand_chiffre(df_digit[(df_digit['conf'] > "55")])
-        #print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
+        print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
     except Exception:
         print("error function - search_total")
     return total
@@ -131,7 +170,7 @@ def search_total(df):
 def mot_parasites (list):
     presence = False
     liste_parasite = ['change','charge','check','discout','fee','gratuity','guests','item','order','other','received',
-                      'sale','service','subtotal','sub','tax','taxable','tva','tip','ticket','table','%','#']
+                      'sale','service','subtotal','sub','tax','taxable','tva','tip','ticket','table','%','#'] #gratuit
     for i in range (len(liste_parasite)):
         if (liste_parasite[i] in list):
             presence = True
@@ -168,6 +207,7 @@ def select_le_plus_grand_chiffre(df):
     elif (len(df) > 1):
         df = df[df['text'].notnull()].copy()
         df['text'] = df['text'].astype(float)
+        print(df)
         moyenne_hauteur = df.height.mean()
         df = df[(df['text'] < 40000) & (df['height'] >= moyenne_hauteur-1)]
         df = df.sort_values(by=['text'], ascending=False)
