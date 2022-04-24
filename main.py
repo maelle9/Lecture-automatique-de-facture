@@ -2,21 +2,19 @@ import numpy as np
 import imgutils
 import cv2
 import matplotlib.pyplot as plt
-import extraction_silhouette
 import contours_image
 import part3
 import pandas as pd
-import test_traitement_image
-import prétraitement
+import traitement
 from skimage.exposure import rescale_intensity
 from skimage.io import imread
 
 def main(path, display_image):
-    img = prétraitement.pretraitement(path)
-    base_o, image_o = extraction_silhouette.silhouette(path)
-    test_traitement_image.test_morpho(img)
+    img = traitement.pretraitement(path)
+    base_o, image_o = traitement.silhouette(path)
+    traitement.test_morpho(img)
 
-    base, image = extraction_silhouette.silhouette("data/output.jpg")
+    base, image = traitement.silhouette("data/output.jpg")
 
     # --------- début 2.2 ---------
 
