@@ -4,10 +4,11 @@ from matplotlib import pyplot as plt
 from pytesseract import Output
 import cv2 # pip install opencv-python
 from paddleocr import PaddleOCR
+import re
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-liste_total = ['total', 'totale', 'tot', 'tota', 'otal', 'due', 'amt', 'amount', 'balance']
+liste_total = ['total', 'totale', 'tot', 'tota', 'otal', 'totl', 'due', 'amt', 'amount', 'amoun', 'balance']
 
 def read_text_pytesseract (img):
     text = pytesseract.image_to_string(img)  # , lang = 'eng'
@@ -72,7 +73,9 @@ def affiche_total(image):
     if(df_padd.empty == False and df_pytes.empty == False):
         df_pytes = clean_df(df_pytes)
         df_padd = clean_df(df_padd)
+        print('---- df_pytes ----')
         print(list(df_pytes['text']))
+        print('---- df_padd ----')
         print(list(df_padd['text']))
         for i in range (len(liste_total)):
             if liste_total[i] in list(df_padd['text']):
@@ -113,6 +116,25 @@ def affiche_total(image):
 def df_pytesseract(image):
     data = pytesseract.image_to_data(image, output_type=Output.DICT)
     df = pd.DataFrame(data)
+
+    """
+    osd_rotated_image = pytesseract.image_to_osd(image)
+    angle_rotated_image = re.search('(?<=Rotate: )\d+', osd_rotated_image).group(0)
+    print(angle_rotated_image)
+    # --------------------
+    osd = pytesseract.image_to_osd(image)
+    angle = re.search('(?<=Rotate : )\d', osd).group(0)
+    print("angle :", angle)
+    #-----------------------
+    rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = pytesseract.image_to_osd(rgb, output_type=Output.DICT)
+    # display the orientation information
+    print("[INFO] detected orientation: {}".format(
+        results["orientation"]))
+    print("[INFO] rotate by {} degrees to correct".format(
+        results["rotate"]))
+    print("[INFO] detected script: {}".format(results["script"]))
+    """
     return df
 
 def df_paddle(image):
@@ -147,8 +169,8 @@ def search_total(df):
     try:
         total = '0'
         df_not_digit = df[(df['digit'] == False)]
-        df_digit = df[(df['digit'] == True)]
-        df_digit["list"] = df_digit.apply(lambda row: find_text_on_the_same_line(row["top"],row["text"], df_not_digit) ,axis=1)
+        df_digit = elimination_des_mots_parasites(df)
+
         df_digit["total_word"] = df_digit.apply(lambda row: mot_total(row["list"]),axis=1)
         df_digit = df_digit[(df_digit['total_word'] == True)]
 
@@ -160,7 +182,7 @@ def search_total(df):
         print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
         print(df_not_digit[['top', 'left', 'height', 'conf', 'text']])
 
-        df_digit = df_digit[(df_digit['left'] > left)]
+        df_digit = df_digit[(df_digit['left'] >= left)]
         total = select_le_plus_grand_chiffre(df_digit[(df_digit['conf'] > "55")])
         print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
     except Exception:
@@ -169,8 +191,8 @@ def search_total(df):
 
 def mot_parasites (list):
     presence = False
-    liste_parasite = ['change','charge','check','discout','fee','gratuity','guests','item','order','other','received',
-                      'sale','service','subtotal','sub','tax','taxable','tva','tip','ticket','table','%','#'] #gratuit
+    liste_parasite = ['change','charge','check','discout','fee','gratuity','gratuit','guests','item','order','other','received',
+                      'sale','sales','service','subtotal','sub-total','sub','tax','taxable','tva','tip','ticket','table','%','#']
     for i in range (len(liste_parasite)):
         if (liste_parasite[i] in list):
             presence = True
@@ -182,8 +204,8 @@ def elimination_des_mots_parasites(df):
         df_not_digit = df[(df['digit'] == False)]
         df_digit = df[(df['digit'] == True)]
         df_digit["list"] = df_digit.apply(lambda row: find_text_on_the_same_line(row["top"],row["text"], df_not_digit) ,axis=1)
-        df_digit["total_word"] = df_digit.apply(lambda row: mot_parasites(row["list"]),axis=1)
-        df_digit = df_digit[(df_digit['total_word'] == False)]
+        df_digit["parasites_word"] = df_digit.apply(lambda row: mot_parasites(row["list"]),axis=1)
+        df_digit = df_digit[(df_digit['parasites_word'] == False)]
     except Exception:
         df_digit = df.copy()
         print("error function - elimination_des_mots_parasites")
@@ -194,6 +216,7 @@ def list_chiffre_a_droite(image,df):
         left = int(image.shape[1]/3)
         top = int(image.shape[0]/4)
         df = df[(df['text'] != "") & (df['left'] > left) & (df['top'] > top) & (df['digit'] == True)]
+        print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
         total = select_le_plus_grand_chiffre(df[(df['conf'] > "75")])
     except Exception:
         total = '0'
@@ -201,13 +224,14 @@ def list_chiffre_a_droite(image,df):
     return total
 
 def select_le_plus_grand_chiffre(df):
-    df = verifie_si_chiffre_pas_en_2_parties(df)
     total = '0'
-    if (len(df) == 1): total = list(df['text'])[0]
+    if (len(df) == 1):
+        total = list(df['text'])[0]
     elif (len(df) > 1):
+        df = verifie_si_chiffre_pas_en_2_parties(df)
         df = df[df['text'].notnull()].copy()
         df['text'] = df['text'].astype(float)
-        print(df)
+        print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
         moyenne_hauteur = df.height.mean()
         df = df[(df['text'] < 40000) & (df['height'] >= moyenne_hauteur-1)]
         df = df.sort_values(by=['text'], ascending=False)

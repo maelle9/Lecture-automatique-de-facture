@@ -8,11 +8,6 @@ import part3
 import pandas as pd
 import test_traitement_image
 import prétraitement
-
-# 1191 -> ticket très dur car présence de pourboire
-
-# Pour Camille 1171, 1189
-
 from skimage.exposure import rescale_intensity
 from skimage.io import imread
 
@@ -92,5 +87,5 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("data/1165-receipt.jpg", False))
+#print("LE TOTAL EST : ", main("data/1154-receipt.jpg", True))
 table_comparaison()

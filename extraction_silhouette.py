@@ -12,7 +12,9 @@ def silhouette(path):
     border = cv2.copyMakeBorder(src, top=bordersize, bottom=bordersize, left=0, right=bordersize,
                                 borderType=cv2.BORDER_ISOLATED, value=[0, 0, 0])
     Resize = imgutils.opencv_resize(border, 800 / border.shape[0])
-    Blur = cv2.GaussianBlur(Resize, (3, 3), 0)
+    #Blur = cv2.GaussianBlur(Resize, (3, 3), 0)
+    img = cv2.medianBlur(Resize, 5)
+    retval, Blur = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
     Struct = cv2.dilate(Blur, kernel)
     image = cv2.Canny(Struct, 100, 100, apertureSize=3)
