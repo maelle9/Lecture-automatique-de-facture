@@ -44,6 +44,7 @@ def clean_df (df):
     df.text = df.text.str.replace(',', '.')
     df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
     df.text = df.text.str.replace('[;,:,=]', ' ')
+    df["text"] = df.apply(lambda row: "%" if '%' in row["text"] else row["text"], axis=1)
     df = df[(df['text'] != "") & (df['conf'] > "10")]  # 79
     df.text = df.text.str.lower()
     if(df.empty == False):
