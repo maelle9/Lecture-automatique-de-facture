@@ -54,7 +54,6 @@ def clean_df (df):
                 row_add = pd.Series([row['top'],row['left'],row['height'],row['width'],row['conf'],liste_text[i]], index=df.columns)
                 DF = DF.append(row_add, ignore_index=True)
         df = DF.copy()
-    print(df)
     # Is somethings before number - S'il y a un caractère devant un chiffre alors on l'enleve car il s'agit probablement d'un "$" mal lu
     try:
         df["text"] = df.apply(lambda row:row["text"][1:] if (row["text"][0] != '.' and is_number(row["text"][0]) == False and is_number(row["text"][1:]) == True)
@@ -62,7 +61,7 @@ def clean_df (df):
     except:
         print('Is somethings before number not work')
 
-    df['digit'] = [is_number(word) for word in df['text']]
+    if(df.empty == False): df['digit'] = [is_number(word) for word in df['text']]
     return df
 
 def affiche_total(image):
@@ -73,6 +72,7 @@ def affiche_total(image):
     if(df_padd.empty == False and df_pytes.empty == False):
         df_pytes = clean_df(df_pytes)
         df_padd = clean_df(df_padd)
+    if (df_padd.empty == False and df_pytes.empty == False):
         print('---- df_pytes ----')
         print(list(df_pytes['text']))
         print('---- df_padd ----')
@@ -95,21 +95,25 @@ def affiche_total(image):
             total = list_chiffre_a_droite(image,df_pytes)
     else:
         if(df_padd.empty == False):
-            for i in range(len(liste_total)):
-                if liste_total[i] in list(df_padd['text']):
-                    total = search_total(df_padd)
-                    break
-            if (total == '0'):
-                df_padd = elimination_des_mots_parasites(df_padd)
-                total = list_chiffre_a_droite(image, df_padd)
+            df_padd = clean_df(df_padd)
+            if (df_padd.empty == False):
+                for i in range(len(liste_total)):
+                    if liste_total[i] in list(df_padd['text']):
+                        total = search_total(df_padd)
+                        break
+                if (total == '0'):
+                    df_padd = elimination_des_mots_parasites(df_padd)
+                    total = list_chiffre_a_droite(image, df_padd)
         if(df_pytes.empty == False and total == '0'):
-            for i in range(len(liste_total)):
-                if liste_total[i] in list(df_pytes['text']):
-                    total = search_total(df_pytes)
-                    break
-            if (total == '0'):
-                df_pytes = elimination_des_mots_parasites(df_pytes)
-                total = list_chiffre_a_droite(image, df_pytes)
+            df_pytes = clean_df(df_pytes)
+            if(df_pytes.empty == False):
+                for i in range(len(liste_total)):
+                    if liste_total[i] in list(df_pytes['text']):
+                        total = search_total(df_pytes)
+                        break
+                if (total == '0'):
+                    df_pytes = elimination_des_mots_parasites(df_pytes)
+                    total = list_chiffre_a_droite(image, df_pytes)
 
     return total
 
