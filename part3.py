@@ -4,14 +4,20 @@ from matplotlib import pyplot as plt
 from pytesseract import Output
 import cv2 # pip install opencv-python
 from paddleocr import PaddleOCR
-import re
+
+import traitement
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-liste_total = ['total', 'totale', 'tot', 'tota', 'otal', 'totl', 'due', 'amt', 'amount', 'amoun', 'balance']
+liste_total = ['total', 'totale', 'tot', 'tota', 'otal', 'totl', 'due', 'amt', 'amount', 'amoun','amont', 'balance']
+
+liste_parasite = ['account','caisse','change', 'charge', 'check','code','date', 'discout', 'fee', 'gratuity', 'gratuit', 'guests',
+                  'id', 'item','monnaie','no', 'num', 'number', 'numero','order','other', 'received','receipt', 'ref', 'reference',
+                  'rendu','sale', 'sales', 'service','sous','sos','soustotal', 'subtotal', 'sub-total','sb', 'sub', 'tax', 'taxe','taxable', 'terminal',
+                  'tva', 'tip', 'ticket','table', 'vat', '%', '#']
 
 def read_text_pytesseract (img):
-    text = pytesseract.image_to_string(img)  # , lang = 'eng'
+    text = pytesseract.image_to_string(img)  # ,lang = 'eng'
     return text
 
 def read_text_paddle(img):
@@ -38,15 +44,23 @@ def is_number(num):
     except ValueError:
         return False
 
+def count_difference_between_word(a,b):
+    zipped = zip(a, b)
+    difference = sum(1 for e in zipped if e[0] != e[1])
+    difference = difference + abs(len(a) - len(b)) # si les 2 chaînes sont de longueur différente -> ajoute la différence de longueur
+    return difference
+
 def clean_df (df):
     df = df[["top","left","height","width","conf","text"]]
     df['text'] = df['text'].astype(str).str.lower()
     df.text = df.text.str.replace(',', '.')
-    df.text = df.text.str.replace('[$,EUR,€,\',"]', '')
-    df.text = df.text.str.replace('[;,:,=]', ' ')
+    df.text = df.text.str.replace('[$,¥,€,\',",«,»]', '')
+    #df.text = df.text.str.replace('[;,:,=,-]', ' ')
     df["text"] = df.apply(lambda row: "%" if '%' in row["text"] else row["text"], axis=1)
-    df = df[(df['text'] != "") & (df['conf'] > "10")]  # 79
-    df.text = df.text.str.lower()
+    df["text"] = df.apply(lambda row: "#" if '#' in row["text"] else row["text"], axis=1)
+    df = df[(df['text'] != "") & (df['conf'] > "10")]
+
+    print(list(df['text']))
     if(df.empty == False):
         DF = pd.DataFrame()
         for index, row in df.iterrows():
@@ -62,22 +76,37 @@ def clean_df (df):
     except:
         print('Is somethings before number not work')
 
-    if(df.empty == False): df['digit'] = [is_number(word) for word in df['text']]
+    # Is somethings after number - S'il y a un caractère après un chiffre alors on l'enleve car il s'agit probablement d'un "E" mal lu
+    try:
+        df["text"] = df.apply(lambda row:row["text"][:-1] if (row["text"][-1] != '.' and is_number(row["text"][-1]) == False and is_number(row["text"][:-1]) == True)
+                                                        else row["text"], axis=1)
+    except:
+        print('Is somethings after number not work')
+
+    if(df.empty == False):
+        df['digit'] = [is_number(word) for word in df['text']]
+        df["diff"] = [count_difference_between_word(word, 'total') for word in df['text']]
+        df["text"] = df.apply(lambda row: 'total' if (row["diff"] <= 1) else row["text"], axis=1)
     return df
 
+def displayTextDf(df_pytes, df_padd):
+    print('---- df_pytes ----')
+    print(list(df_pytes['text']))
+    print('---- df_padd ----')
+    print(list(df_padd['text']))
+
 def affiche_total(image):
+    image = traitement.traitement_apres_recadrage_2(image)
     df_pytes = df_pytesseract(image)
     df_padd = df_paddle(image)
     total = '0'
+    displayTextDf(df_pytes, df_padd)
     synonyme_total_trouver = False
     if(df_padd.empty == False and df_pytes.empty == False):
         df_pytes = clean_df(df_pytes)
         df_padd = clean_df(df_padd)
+        displayTextDf(df_pytes, df_padd)
     if (df_padd.empty == False and df_pytes.empty == False):
-        print('---- df_pytes ----')
-        print(list(df_pytes['text']))
-        print('---- df_padd ----')
-        print(list(df_padd['text']))
         for i in range (len(liste_total)):
             if liste_total[i] in list(df_padd['text']):
                 total = search_total(df_padd)
@@ -95,6 +124,7 @@ def affiche_total(image):
             df_pytes = elimination_des_mots_parasites(df_pytes)
             total = list_chiffre_a_droite(image,df_pytes)
     else:
+        displayTextDf(df_pytes, df_padd)
         if(df_padd.empty == False):
             df_padd = clean_df(df_padd)
             if (df_padd.empty == False):
@@ -115,30 +145,16 @@ def affiche_total(image):
                 if (total == '0'):
                     df_pytes = elimination_des_mots_parasites(df_pytes)
                     total = list_chiffre_a_droite(image, df_pytes)
-
     return total
 
 def df_pytesseract(image):
     data = pytesseract.image_to_data(image, output_type=Output.DICT)
     df = pd.DataFrame(data)
-
     """
+    # Test rotation text
     osd_rotated_image = pytesseract.image_to_osd(image)
     angle_rotated_image = re.search('(?<=Rotate: )\d+', osd_rotated_image).group(0)
     print(angle_rotated_image)
-    # --------------------
-    osd = pytesseract.image_to_osd(image)
-    angle = re.search('(?<=Rotate : )\d', osd).group(0)
-    print("angle :", angle)
-    #-----------------------
-    rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    results = pytesseract.image_to_osd(rgb, output_type=Output.DICT)
-    # display the orientation information
-    print("[INFO] detected orientation: {}".format(
-        results["orientation"]))
-    print("[INFO] rotate by {} degrees to correct".format(
-        results["rotate"]))
-    print("[INFO] detected script: {}".format(results["script"]))
     """
     return df
 
@@ -158,7 +174,7 @@ def df_paddle(image):
     return df
 
 def find_text_on_the_same_line (top, text, df):
-    df = df[(df['top'] > top-10) & (df['top'] < top+10) & (df['text'] != text)]
+    df = df[(df['top'] >= top-10) & (df['top'] <= top+10) & (df['text'] != text)]
     return list(df['text'])
 
 
@@ -188,7 +204,7 @@ def search_total(df):
         print(df_not_digit[['top', 'left', 'height', 'conf', 'text']])
 
         df_digit = df_digit[(df_digit['left'] >= left)]
-        total = select_le_plus_grand_chiffre(df_digit[(df_digit['conf'] > "55")])
+        total = select_le_plus_grand_chiffre(df_digit)
         print(df_digit[['top', 'left', 'height', 'conf', 'text', 'list']])
     except Exception:
         print("error function - search_total")
@@ -196,8 +212,6 @@ def search_total(df):
 
 def mot_parasites (list):
     presence = False
-    liste_parasite = ['change','charge','check','discout','fee','gratuity','gratuit','guests','item','order','other','received',
-                      'sale','sales','service','subtotal','sub-total','sub','tax','taxable','tva','tip','ticket','table','%','#']
     for i in range (len(liste_parasite)):
         if (liste_parasite[i] in list):
             presence = True
@@ -217,28 +231,46 @@ def elimination_des_mots_parasites(df):
     return df_digit
 
 def list_chiffre_a_droite(image,df):
-    try:
-        left = int(image.shape[1]/3)
-        top = int(image.shape[0]/4)
-        df = df[(df['text'] != "") & (df['left'] > left) & (df['top'] > top) & (df['digit'] == True)]
-        print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
-        total = select_le_plus_grand_chiffre(df[(df['conf'] > "75")])
-    except Exception:
-        total = '0'
-        print("error function - list_chiffre_a_droite")
+    left = int(image.shape[1]/2)
+    top = int(image.shape[0]/3)
+    print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
+    df = df[(df['text'] != "") & (df['left'] > left) & (df['top'] > top) & (df['digit'] == True)]
+    print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
+
+    #df = verifie_si_chiffre_pas_en_2_parties(df)
+    df = format_chiffre(df)
+    print("format")
+    print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
+    total = select_le_plus_grand_chiffre(df[(df['conf'] > "80")])
     return total
+
+
+def format_chiffre_(chiffre):  # xx.xx
+    try:
+        if (chiffre[-3] == '.' and len(chiffre) >=4): return True
+        else: return False
+    except Exception:
+        return False
+
+def format_chiffre(df):
+    df["format"] = df.apply(lambda row: format_chiffre_(row["text"]) ,axis=1)
+    df = df[(df['format'] == True)]
+    return df
+
 
 def select_le_plus_grand_chiffre(df):
     total = '0'
     if (len(df) == 1):
+        df = df[df['text'].notnull()].copy()
+        df['text'] = df['text'].astype(float)
+        df = df[(df['text'] < 40000)]
         total = list(df['text'])[0]
     elif (len(df) > 1):
-        df = verifie_si_chiffre_pas_en_2_parties(df)
         df = df[df['text'].notnull()].copy()
         df['text'] = df['text'].astype(float)
         print(df[['top', 'left', 'height', 'conf', 'text', 'list']])
-        moyenne_hauteur = df.height.mean()
-        df = df[(df['text'] < 40000) & (df['height'] >= moyenne_hauteur-1)]
+        #moyenne_hauteur = df.height.mean()
+        df = df[(df['text'] < 40000)] #(df['height'] >= moyenne_hauteur-1)
         df = df.sort_values(by=['text'], ascending=False)
         if (len(df) > 0) : total = list(df['text'])[0]
     else: print("Liste vide - Pas de total trouvé")
@@ -254,14 +286,14 @@ def verifie_si_chiffre_pas_en_2_parties(df):
         a = row['top']
         a1 = row['height']
         a2 = row['text']
-        if (a < b +4 and a > b -4 and a1 < b1 + 3 and a1 > b1 -3):
+        if (a < b +6 and a > b -6 and a1 < b1 + 1 and a1 > b1 -1):
             if "." not in a2 and "." not in b2 or "." in a2 and "." not in b2 or "." not in a2 and "." in b2:
                 DF = df[(df['top'] != a) & (df['height'] != a1) & (df['top'] != b) & (df['height'] != b1)]
                 df_new_line = pd.DataFrame([[int((a1+b1)/2), float(str(b2)+str(a2))]], columns=['height', 'text'])
                 DF = pd.concat([DF, df_new_line], ignore_index=True)
         b = a
         b1 = a1
-        b2=a2
+        b2 = a2
     return DF
 
 # BALENCE DUE + PAYEMENT

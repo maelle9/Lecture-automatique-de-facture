@@ -5,7 +5,7 @@ import imgutils
 
 
 def extraction_contour(silhouette,source):
-    contours, hierarchy = cv2.findContours(silhouette, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(silhouette, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) #RETR_EXTERNAL
     img_contours = cv2.drawContours(source.copy(), contours, -1, (255, 0, 0), 3)
     return img_contours, contours
 
