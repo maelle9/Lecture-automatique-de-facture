@@ -10,72 +10,56 @@ from skimage.exposure import rescale_intensity
 from skimage.io import imread
 
 def main(path, display_image):
-    img = traitement.pretraitement(path)
-    base_o, image_o = traitement.silhouette(path)
-    traitement.test_morpho(img)
+    # silhouette
+    base, image = traitement.silhouette(path)
+    if (display_image == True) :imgutils.affiche(image)
 
-    base, image = traitement.silhouette("data/output.jpg")
-
-    # --------- début 2.2 ---------
-
-    if (display_image == True):
-        imgutils.plot_gray(base_o)
-        plt.show()
-
-    # --------- début 2.3 ---------
-
-    img_contours, contours = contours_image.extraction_contour(image, base_o)
+    # extraction_contour
+    img_contours, contours = contours_image.extraction_contour(image, base)
     if (display_image == True) : imgutils.affiche(img_contours)
+
+    # ten_contours
     list = contours_image.ten_contours(contours)
-
-    img_large_contours = cv2.drawContours(base_o.copy(), list, -1, (255, 0, 0), 3)
-
+    img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
     if (display_image == True) : imgutils.affiche(img_large_contours)
 
+    # get_receipt_contour
+    rect = imgutils.get_receipt_contour(list)
+    img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
+    if (display_image == True): imgutils.affiche(img_rect)
 
     # ==================== Recadrage d'image ===========================
     # si cadre détecté > 3.5 * taille de l'image
 
     if (contours_image.si_image_bien_cadre (image,contours) == True):
 
-        rect = imgutils.get_receipt_contour(list)
+        # wrap_perspective
+        img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
+        if (display_image == True) : imgutils.affiche(img_redresse)
 
-        img_rect = cv2.drawContours(base_o.copy(), rect, -1, (0, 255, 0), 3)
-
-        if (display_image == True) : imgutils.affiche(img_rect)
-
-        # --------- 2.4 ---------
-
-        img_redresse = imgutils.wrap_perspective(base_o.copy(), imgutils.contour_to_rect(rect))
-
-        img_scan = imgutils.bw_scanner(img_redresse)
-        if (display_image == True) : imgutils.affiche(img_scan)
-
-        total = part3.affiche_total(img_scan)
-        if (display_image == True) : part3.affiche_rectangle(img_scan, (0, 255, 0), 2)
+        # affiche_total
+        total = part3.affiche_total(img_redresse)
+        if (display_image == True) : part3.affiche_rectangle(img_redresse, (0, 255, 0), 2)
 
     # ==================== Pas de recadrage d'image ===========================
     # si cadre détecté < 3.5 * taille de l'image
 
     else:
-        # --- amelioration de l'image -----
-        img = cv2.imread(path)
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        #image = prétraitement.pretraitement(path)
-        p_low, p_high = np.percentile(img_gray, (1, 95))
-        img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
         # --- lecture image ------
-        total = part3.affiche_total(img_gray)
-        if (display_image == True) : part3.affiche_rectangle(img_gray, (0, 255, 0), 2)
+        total = part3.affiche_total(base)
+        if (display_image == True) : part3.affiche_rectangle(base, (0, 255, 0), 2)
 
     return total
 
 def table_comparaison():
-    df = pd.read_csv("table_de_verification_dataset.csv", sep=';')
+    df = pd.read_csv("table_de_verification.csv", sep=';')
     for i in range (len(df)):
         num = df.loc[i,'numero']
         print(num)
-        total = main("dataset/" + str(num) +"-receipt.jpg", False)
+        try:
+            total = main("data/" + str(num) +"-receipt.jpg", False)
+            #total = main("data_2/" + str(num) +".jpg", False) #2
+        except: total = '0'
         df.loc[i, 'total_obtenu'] = total
     df["result"] = df.apply(lambda row: True if float(row["total"]) == float(row["total_obtenu"]) else False, axis = 1)
     count = df['result'].value_counts()
@@ -85,5 +69,5 @@ def table_comparaison():
     print(count)
 
 
-#print("LE TOTAL EST : ", main("data/1154-receipt.jpg", True))
+#print("LE TOTAL EST : ", main("data/sample.jpg", False))
 table_comparaison()
