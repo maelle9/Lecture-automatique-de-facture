@@ -1,11 +1,27 @@
+import base64
+import os
+from flask import Flask, send_from_directory
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import main
 
-# Load data
-app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])  # initialisation du dash app
+#Dossier ou les photos upload vont être téléchargé
+UPLOAD_DIRECTORY = "C:/Testo"
 
-#On ajoute un layout sur la page
+#Si pas déjà existant, on le crée
+if not os.path.exists(UPLOAD_DIRECTORY):
+    os.makedirs(UPLOAD_DIRECTORY)
+
+# Normally, Dash creates its own Flask server internally. By creating our own,
+# we can create a route for downloading files directly:
+server = Flask(__name__)
+app = Dash(server=server, external_stylesheets=[dbc.themes.SUPERHERO])
+
+@server.route("/download/<path:path>")
+def download(path):
+    """Serve a file from the upload directory."""
+    return send_from_directory(UPLOAD_DIRECTORY, path, as_attachment=True)
+
 
 app.layout = html.Div([
                 html.Div(
@@ -76,7 +92,7 @@ app.layout = html.Div([
                 ),
 
                 html.Div(children=[
-                    html.A("<...........................................................................................................................................................>")],
+                    html.A("<..............................................................................................................................................>")],
                     style={
                         'width': '990px',
                         'height': '80px',
@@ -87,23 +103,66 @@ app.layout = html.Div([
                         'margin-left': '210px',
                         "background-color": "#9B0024"
                     }
-                )
+                ),
+                html.H2("File List"),
+                html.Ul(id="file-list")
 ])
+
+
+def save_file(name, content):
+    """Decode and store a file uploaded with Plotly Dash."""
+    data = content.encode("utf8").split(b";base64,")[1]
+    with open(os.path.join(UPLOAD_DIRECTORY, name), "wb") as fp:
+        fp.write(base64.decodebytes(data))
+
+
+def uploaded_files():
+    """List the files in the upload directory."""
+    files = []
+    for filename in os.listdir(UPLOAD_DIRECTORY):
+        path = os.path.join(UPLOAD_DIRECTORY, filename)
+        if os.path.isfile(path):
+            files.append(filename)
+    return files
+
+
+def file_download_link(filename):
+    """Create a Plotly Dash 'A' element that downloads a file from the app."""
+    return html.A(filename)
 
 def Image(contents, filename):
     return html.Div([
         html.Div([
         html.Img(src=contents, style={'height':'50%', 'width':'40%'})]),
         html.Div([
-            html.H6(main.main("data/" + filename, False))
+            html.H6(main.main("C:/Testo/" +filename, False)),
+            html.H6(contents)
         ], style = {
             'margin-top': '-40px',
             'margin-left': '680px'})
     ])
 
-@app.callback(Output('output-image-upload', 'children'),
-              Input('importer', 'contents'),
-              State('importer', 'filename'))
+@app.callback(Output("file-list", "children"),
+            Input("importer", "contents"),
+            State("importer", "filename"))
+
+def update_output(list_of_contents, list_of_names):
+    """Save uploaded files and regenerate the file list."""
+
+    if list_of_names is not None and list_of_contents is not None:
+        for data, name in zip(list_of_contents, list_of_names):
+            save_file(name, data)
+
+    files = uploaded_files()
+
+    if len(files) == 0:
+        return [html.Li("No files yet!")]
+    else:
+        return [html.Li(file_download_link(filename)) for filename in files]
+
+@app.callback(Output("output-image-upload", "children"),
+            Input("importer", "contents"),
+            State("importer", "filename"))
 
 def update_output(list_of_contents, list_of_names):
     if list_of_contents is not None:
@@ -113,6 +172,5 @@ def update_output(list_of_contents, list_of_names):
                 zip(list_of_contents, list_of_names)]
         return children
 
-# Run the app
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run_server(debug=True)
