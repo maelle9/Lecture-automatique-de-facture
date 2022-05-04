@@ -15,8 +15,10 @@ Durée du projet : 4 mois
 
 ## Démonstration <a name="demo"></a>
 ### Screenshot
-![Image text](/path/to/the/screenshot.png)
+![Image text](/asset/git/photo_interface.jpg)
 
+### Fonctionnalité
+![Image text](/asset/git/animation_interface.gif)
 
 ## OCR utilisé <a name="ocr"></a>
 pyteserract + paddle ocr
