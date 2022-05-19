@@ -253,8 +253,10 @@ def format_chiffre_(chiffre):  # xx.xx
         return False
 
 def format_chiffre(df):
-    df["format"] = df.apply(lambda row: format_chiffre_(row["text"]) ,axis=1)
-    df = df[(df['format'] == True)]
+    try:
+        df["format"] = df.apply(lambda row: format_chiffre_(row["text"]) ,axis=1)
+        df = df[(df['format'] == True)]
+    except Exception: print('error - format chiffre')
     return df
 
 

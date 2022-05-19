@@ -4,9 +4,10 @@ from flask import Flask, send_from_directory
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import main
+import atexit
 
 #Dossier ou les photos upload vont être téléchargé
-UPLOAD_DIRECTORY = "C:/Testo"
+UPLOAD_DIRECTORY = "C:/Temp"
 
 #Si pas déjà existant, on le crée
 if not os.path.exists(UPLOAD_DIRECTORY):
@@ -133,11 +134,10 @@ def file_download_link(filename):
 def Image(contents, filename):
     return html.Div([
         html.Div([
-        html.Img(src=contents, style={'height':'50%', 'width':'40%'})]),
+        html.Img(src=contents, style={'height': '50%', 'width': '40%'})]),
         html.Div([
-            html.H6(main.main("C:/Testo/" +filename, False)),
-            html.H6(contents)
-        ], style = {
+            html.H6(main.main("C:/Temp/" + filename, False)),
+        ], style={
             'margin-top': '-40px',
             'margin-left': '680px'})
     ])
@@ -172,5 +172,14 @@ def update_output(list_of_contents, list_of_names):
                 zip(list_of_contents, list_of_names)]
         return children
 
+
 if __name__ == "__main__":
     app.run_server(debug=True)
+
+def CloseRepertory():
+    if os.path.exists(UPLOAD_DIRECTORY):
+        os.rmdir(UPLOAD_DIRECTORY)
+    print("Au revoir")
+
+atexit.register(CloseRepertory)
+app.run()
