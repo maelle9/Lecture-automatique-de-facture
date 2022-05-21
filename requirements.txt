@@ -1,0 +1,7 @@
+numpy
+pandas
+scikit-image
+opencv
+pillow
+pytesseract
+dash
