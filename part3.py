@@ -33,6 +33,13 @@ def affiche_rectangle (image, color, thickness):
     for i in range(nbRectangle):
         (x, y, w, h) = (data['left'][i], data['top'][i], data['width'][i], data['height'][i])
         cv2.rectangle(image, (x, y), (x + w, y + h), color, thickness)
+        """
+        print(x, y, w, h)
+        #https://mindee.github.io/doctr/getting_started/installing.html OCR
+        cropped = image[y:y + h, x:x + w]
+        plt.imshow(cropped)
+        plt.show()"""
+
     plt.imshow(image)
     plt.show()
 
@@ -58,7 +65,7 @@ def clean_df (df):
     #df.text = df.text.str.replace('[;,:,=,-]', ' ')
     df["text"] = df.apply(lambda row: "%" if '%' in row["text"] else row["text"], axis=1)
     df["text"] = df.apply(lambda row: "#" if '#' in row["text"] else row["text"], axis=1)
-    df = df[(df['text'] != "") & (df['conf'] > "10")]
+    df = df[(df['text'] != "") & (df['text'] != " ") & (df['conf'] > "10")]
 
     print(list(df['text']))
     if(df.empty == False):
