@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import imgutils
 import cv2
@@ -37,17 +38,19 @@ def main(path, display_image):
         img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
         if (display_image == True) : imgutils.affiche(img_redresse)
 
+        image_final = traitement.traitement_apres_recadrage_2(img_redresse)
         # affiche_total
-        total = part3.affiche_total(img_redresse)
-        if (display_image == True) : part3.affiche_rectangle(img_redresse, (0, 255, 0), 2)
+        total = part3.affiche_total(image_final)
+        if (display_image == True) : part3.affiche_rectangle(image_final, (0, 255, 0), 2)
 
     # ==================== Pas de recadrage d'image ===========================
     # si cadre détecté < 3.5 * taille de l'image
 
     else:
+        image_final = traitement.traitement_apres_recadrage_2(base)
         # --- lecture image ------
-        total = part3.affiche_total(base)
-        if (display_image == True) : part3.affiche_rectangle(base, (0, 255, 0), 2)
+        total = part3.affiche_total(image_final)
+        if (display_image == True) : part3.affiche_rectangle(image_final, (0, 255, 0), 2)
 
     return total
 
@@ -68,6 +71,11 @@ def table_comparaison():
     print(df)
     print(count)
 
+start = time.time()
 
 #print("LE TOTAL EST : ", main("data/sample.jpg", False))
 table_comparaison()
+
+end = time.time()
+executionTime = end - start
+print('Temps d\'exécution : ', executionTime, ' s')

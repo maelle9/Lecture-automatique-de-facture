@@ -29,32 +29,34 @@ def silhouette(path):
     img = cv2.Canny(img, 200, 200)
     kernel = np.ones((5,5))
     img = cv2.dilate(img, kernel, iterations=3)
-    img = cv2.erode(img, kernel, iterations=1)
+    img = cv2.erode(img, kernel, iterations=2)
 
     return Resize, img
 
 def traitement_apres_recadrage_2 (img):
+    # Enleve un contour de 5 px
+    h = int(img.shape[1])
+    w = int(img.shape[0])
+    pixel = 5
+    img = img[pixel:(w-pixel), pixel:(h-pixel)]
+
+    # Resize
     img = cv2.resize(img, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_CUBIC)
 
+    # binarize
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    #ret, img = cv2.threshold(img, 120, 255, cv2.THRESH_TOZERO)
 
-    #T = threshold_local(img, 21, offset=5, method="gaussian")
-    #img = (img > T).astype("uint8") * 255
-
-
+    # Enleve bruit
     kernel = np.ones((1,1))
-    img = cv2.dilate(img, kernel, iterations=1)
-    img = cv2.erode(img, kernel, iterations=1)
+    img = cv2.dilate(img, kernel, iterations=2)
+    img = cv2.erode(img, kernel, iterations=2)
 
-    #cv2.threshold(cv2.bilateralFilter(img, 5, 75, 75), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    cv2.threshold(cv2.medianBlur(img, 3), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-    #cv2.adaptiveThreshold(cv2.bilateralFilter(img, 9, 75, 75), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
-    #cv2.adaptiveThreshold(cv2.medianBlur(img, 3), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+    #img = cv2.threshold(cv2.medianBlur(img, 3), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+    #img = cv2.adaptiveThreshold(cv2.medianBlur(img, 3), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
 
     # Pour déflouter un peu -> unsharp mask
-    #gaussian_3 = cv2.GaussianBlur(img, (0, 0), 2.0)
-    #img = cv2.addWeighted(img, 2.0, gaussian_3, -1.0, 0)
+    gaussian_3 = cv2.GaussianBlur(img, (0, 0), 2.0)
+    img = cv2.addWeighted(img, 2.0, gaussian_3, -1.0, 0)
 
     #contrast = 1.2
     #brightness = 0

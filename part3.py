@@ -5,6 +5,7 @@ from pytesseract import Output
 import cv2 # pip install opencv-python
 from paddleocr import PaddleOCR
 
+import imgutils
 import traitement
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
@@ -28,7 +29,7 @@ def read_text_paddle(img):
 
 
 def affiche_rectangle (image, color, thickness):
-    data = pytesseract.image_to_data(image, output_type=Output.DICT)
+    data = pytesseract.image_to_data(image, output_type=Output.DICT, lang='eng', config='--psm 6')
     nbRectangle = len(data['level'])
     for i in range(nbRectangle):
         (x, y, w, h) = (data['left'][i], data['top'][i], data['width'][i], data['height'][i])
@@ -39,9 +40,7 @@ def affiche_rectangle (image, color, thickness):
         cropped = image[y:y + h, x:x + w]
         plt.imshow(cropped)
         plt.show()"""
-
-    plt.imshow(image)
-    plt.show()
+    imgutils.affiche(image)
 
 
 def is_number(num):
@@ -103,7 +102,6 @@ def displayTextDf(df_pytes, df_padd):
     print(list(df_padd['text']))
 
 def affiche_total(image):
-    image = traitement.traitement_apres_recadrage_2(image)
     df_pytes = df_pytesseract(image)
     df_padd = df_paddle(image)
     total = '0'
@@ -155,7 +153,7 @@ def affiche_total(image):
     return total
 
 def df_pytesseract(image):
-    data = pytesseract.image_to_data(image, output_type=Output.DICT)
+    data = pytesseract.image_to_data(image, output_type=Output.DICT, lang='eng', config='--psm 6')
     df = pd.DataFrame(data)
     """
     # Test rotation text
