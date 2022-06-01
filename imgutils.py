@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-
 from skimage.filters import threshold_local
 from PIL import Image
 
@@ -20,12 +19,6 @@ def opencv_resize(image, ratio):
 def plot_rgb(image):
     plt.figure(figsize=(16, 10))
     return plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
-
-# plot figure using grayscale
-def plot_gray(image):
-    plt.figure(figsize=(16, 10))
-    return plt.imshow(image, cmap='Greys_r')
 
 
 # approximate the contour by a more primitive polygon shape
@@ -85,13 +78,6 @@ def wrap_perspective(img, rect):
     M = cv2.getPerspectiveTransform(rect, dst)
     # warp the perspective to grab the screen
     return cv2.warpPerspective(img, M, (maxWidth, maxHeight))
-
-
-def bw_scanner(image):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # thresholding allows for removing anything in the background
-    T = threshold_local(gray, 21, offset=5, method="gaussian")
-    return (gray > T).astype("uint8") * 255
 
 
 def affiche(image):
