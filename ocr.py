@@ -6,7 +6,7 @@ from paddleocr import PaddleOCR
 
 import imgutils
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'Tesseract-OCR\tesseract.exe'
 
 
 # ----------------------------------------------------------------------------------------------------------------------
