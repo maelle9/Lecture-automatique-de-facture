@@ -1,88 +1,185 @@
-import time
-import imgutils
-import cv2
-import contours_image
-import pandas as pd
-import traitement_image
-import ocr
-from find_total_amount import affiche_total
+import base64
+import os
+from flask import Flask, send_from_directory
+from dash import Dash, html, dcc, Input, Output, State
+import dash_bootstrap_components as dbc
+import main
+import atexit
+
+#Dossier ou les photos upload vont être téléchargé
+UPLOAD_DIRECTORY = "C:/Temp"
+
+#Si pas déjà existant, on le crée
+if not os.path.exists(UPLOAD_DIRECTORY):
+    os.makedirs(UPLOAD_DIRECTORY)
+
+# Normally, Dash creates its own Flask server internally. By creating our own,
+# we can create a route for downloading files directly:
+server = Flask(__name__)
+app = Dash(server=server, external_stylesheets=[dbc.themes.SUPERHERO])
+
+@server.route("/download/<path:path>")
+def download(path):
+    """Serve a file from the upload directory."""
+    return send_from_directory(UPLOAD_DIRECTORY, path, as_attachment=True)
 
 
-def main(path, display_image):
-    # silhouette
-    base, image = traitement_image.silhouette(path)
-    if display_image: imgutils.affiche(image)
+app.layout = html.Div([
+                html.Div(
+                    children=[dcc.Upload(
+                        id='importer',
+                        children=html.Div(
+                            ['Upload here your ',
+                            html.A('picture'),
+                            html.Div(id='output-image-upload'),
+                            html.A(id='children')
+                             ],
+                            style = {
+                                'width' : '400px',
+                                'color': 'black',
+                                'height': '370px',
+                                'lineHeight': '70px',
+                                'textAlign': 'center',
+                                'margin': '260px',
+                                'margin-top': '75px',
+                                "background-color": "#C8C8C8"
+                            },
+                        ),
+                        multiple=True
+                    ),
 
-    # extraction_contour
-    img_contours, contours = contours_image.extraction_contour(image, base)
-    if display_image: imgutils.affiche(img_contours)
+                    ],
 
-    # ten_contours
-    list = contours_image.ten_contours(contours)
-    img_large_contours = cv2.drawContours(base.copy(), list, -1, (255, 0, 0), 3)
-    if display_image: imgutils.affiche(img_large_contours)
+                    style = {
+                        'display': 'inline-block',
+                        'vertical-align': 'top'
+                    }
+                ),
 
-    # get_receipt_contour
-    rect = imgutils.get_receipt_contour(list)
-    img_rect = cv2.drawContours(base.copy(), rect, -1, (0, 255, 0), 3)
-    if display_image: imgutils.affiche(img_rect)
+                html.Div(children = [
+                    html.Div(children=[
+                        html.A("Le total de cette facture est:")],
+                        style={
+                            'width': '400px',
+                            'height': '50px',
+                            'lineHeight': '45px',
+                            'textAlign': 'center',
 
-    # ==================== Recadrage d'image ===========================
-    # si cadre détecté > 3.5 * taille de l'image
+                            "background-color": "#9B0024"
+                        }
+                    ),
 
-    if contours_image.si_image_bien_cadre(image, contours):
+                    html.Div(children=[
+                        #html.A(part3.affiche_total('output-image-upload')),
+                        html.A("")],
+                        style={
+                            'width': '150px',
+                            'height': '150px',
+                            'lineHeight': '140px',
+                            'textAlign': 'center',
+                            'color': 'black',
+                            'border-radius': '100px',
+                            'margin': '130px',
+                            'margin-top': '100px',
+                            "background-color": "#E8A7B6"
+                        }
+                    )
+                ],
+                        style = {
+                        'display': 'inline-block',
+                        'margin-left': '-165px',
+                        'margin-top': '100px'
+                        }
+                ),
 
-        # wrap_perspective
-        img_redresse = imgutils.wrap_perspective(base.copy(), imgutils.contour_to_rect(rect))
-        if display_image: imgutils.affiche(img_redresse)
+                html.Div(children=[
+                    html.A("<..............................................................................................................................................>")],
+                    style={
+                        'width': '990px',
+                        'height': '80px',
+                        'lineHeight': '65px',
+                        'font-size': '26px',
+                        'textAlign': 'center',
+                        'margin': '-170px',
+                        'margin-left': '210px',
+                        "background-color": "#9B0024"
+                    }
+                ),
+                html.H2("File List"),
+                html.Ul(id="file-list")
+])
 
-        image_final = traitement_image.traitement_apres_recadrage_2(img_redresse)
-        # affiche_total
-        total = affiche_total(image_final)
-        if display_image: ocr.affiche_rectangle_paddle(image_final, (0, 255, 0), 2)
 
-    # ==================== Pas de recadrage d'image ===========================
-    # si cadre détecté < 3.5 * taille de l'image
+def save_file(name, content):
+    """Decode and store a file uploaded with Plotly Dash."""
+    data = content.encode("utf8").split(b";base64,")[1]
+    with open(os.path.join(UPLOAD_DIRECTORY, name), "wb") as fp:
+        fp.write(base64.decodebytes(data))
 
+
+def uploaded_files():
+    """List the files in the upload directory."""
+    files = []
+    for filename in os.listdir(UPLOAD_DIRECTORY):
+        path = os.path.join(UPLOAD_DIRECTORY, filename)
+        if os.path.isfile(path):
+            files.append(filename)
+    return files
+
+
+def file_download_link(filename):
+    """Create a Plotly Dash 'A' element that downloads a file from the app."""
+    return html.A(filename)
+
+def Image(contents, filename):
+    return html.Div([
+        html.Div([
+        html.Img(src=contents, style={'height': '50%', 'width': '40%'})]),
+        html.Div([
+            html.H6(main.main("C:/Temp/" + filename, False)),
+        ], style={
+            'margin-top': '-40px',
+            'margin-left': '680px'})
+    ])
+
+@app.callback(Output("file-list", "children"),
+            Input("importer", "contents"),
+            State("importer", "filename"))
+
+def update_output(list_of_contents, list_of_names):
+    """Save uploaded files and regenerate the file list."""
+
+    if list_of_names is not None and list_of_contents is not None:
+        for data, name in zip(list_of_contents, list_of_names):
+            save_file(name, data)
+
+    files = uploaded_files()
+
+    if len(files) == 0:
+        return [html.Li("No files yet!")]
     else:
-        image_final = traitement_image.traitement_apres_recadrage_2(base)
-        # --- lecture image ------
-        total = affiche_total(image_final)
-        if display_image: ocr.affiche_rectangle_paddle(image_final, (0, 255, 0), 2)
+        return [html.Li(file_download_link(filename)) for filename in files]
 
-    return total
+@app.callback(Output("output-image-upload", "children"),
+            Input("importer", "contents"),
+            State("importer", "filename"))
 
-# ----------------------------------------------------------------------------------------------------------------------
-#               Test le programme sur un dataset
-# ----------------------------------------------------------------------------------------------------------------------
+def update_output(list_of_contents, list_of_names):
+    if list_of_contents is not None:
+        children = [
+            Image(c, n)
+            for c, n in
+                zip(list_of_contents, list_of_names)]
+        return children
 
-def table_comparaison():
-    df = pd.read_csv("table/table_de_verification_dataset.csv", sep=';')
-    for i in range(len(df)):
-        num = df.loc[i, 'numero']
-        print(num)
-        try:
-            total = main("dataset/" + str(num) + "-receipt.jpg", False)
-            # total = main("data_2/" + str(num) +".jpg", False) #2
-        except:
-            total = '0'
-        df.loc[i, 'total_obtenu'] = total
-    df["result"] = df.apply(lambda row: True if float(row["total"]) == float(row["total_obtenu"]) else False, axis=1)
-    count = df['result'].value_counts()
-    vrai = len(df[df['result'] == True])
-    print('pourcentage', (int(vrai) / len(df)) * 100)
-    print(df)
-    print(count)
 
-# ----------------------------------------------------------------------------------------------------------------------
-#               Chronomètre + Lancement fonction
-# ----------------------------------------------------------------------------------------------------------------------
+if __name__ == "__main__":
+    app.run_server(debug=True)
 
-start = time.time()
+def CloseRepertory():
+    if os.path.exists(UPLOAD_DIRECTORY):
+        os.rmdir(UPLOAD_DIRECTORY)
+    print("Au revoir")
 
-#print("LE TOTAL EST : ", main("data/sample.jpg", True))
-table_comparaison()
-
-end = time.time()
-executionTime = end - start
-print('Temps d\'exécution : ', executionTime, ' s')
+atexit.register(CloseRepertory)
+app.run()
