@@ -81,7 +81,7 @@ def table_comparaison():
 start = time.time()
 
 #print("LE TOTAL EST : ", main("data/sample.jpg", True))
-table_comparaison()
+#table_comparaison()
 
 end = time.time()
 executionTime = end - start
