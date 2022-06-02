@@ -3,7 +3,7 @@ import os
 from flask import Flask, send_from_directory
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
-import main
+import main_traitement
 import atexit
 
 #Dossier ou les photos upload vont être téléchargé
@@ -136,7 +136,7 @@ def Image(contents, filename):
         html.Div([
         html.Img(src=contents, style={'height': '50%', 'width': '40%'})]),
         html.Div([
-            html.H6(main.main("C:/Temp/" + filename, False)),
+            html.H6(main_traitement.main("C:/Temp/" + filename, False)),
         ], style={
             'margin-top': '-40px',
             'margin-left': '680px'})
