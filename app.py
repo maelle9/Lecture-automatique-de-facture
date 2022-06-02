@@ -15,8 +15,9 @@ if not os.path.exists(UPLOAD_DIRECTORY):
 
 # Normally, Dash creates its own Flask server internally. By creating our own,
 # we can create a route for downloading files directly:
-server = Flask(__name__)
-app = Dash(server=server, external_stylesheets=[dbc.themes.SUPERHERO])
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
+server = app.server
 
 @server.route("/download/<path:path>")
 def download(path):
