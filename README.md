@@ -28,7 +28,7 @@ Nos objectifs:
 
 
 ## Démonstration <a name="demo"></a>
-![Image text](/asset/git/animation_interface.gif)
+![Image text](/asset/git/interfaceGIF.gif)
 
 ## OCR utilisé <a name="ocr"></a>
 Pyteserract et PaddleOCR
