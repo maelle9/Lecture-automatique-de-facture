@@ -1,4 +1,5 @@
-# Lecture automatique de facture - Projet de 4ème année - ESME Sudria
+# Lecture automatique de facture 
+## Projet de 4ème année - ESME Sudria
 Les membres de l'équipe:
 * Camille BAYON DE NOYER, 
 * Sonia MOGHRAOUI, 
@@ -23,6 +24,7 @@ Nos objectifs:
 1. [Démonstration](#demo)
 2. [OCR utilisé](#ocr)
 3. [Librairies principales utilisées](#lib)
+4. [Précision](#accuracy)
 
 
 ## Démonstration <a name="demo"></a>
@@ -39,7 +41,8 @@ Pyteserract et PaddleOCR
 1. traitement d'image: openCV
 2. interface: dash
 
-
+## Précision <a name="accuracy"></a>
+Notre précision est de 79,5% pour le jeu de données dataset et 84,61% pour le jeu de données data
 
 
 <hr>
