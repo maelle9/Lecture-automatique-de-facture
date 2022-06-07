@@ -28,10 +28,6 @@ Nos objectifs:
 
 
 ## Démonstration <a name="demo"></a>
-### Screenshot
-![Image text](/asset/git/photo_interface.jpg)
-
-### Fonctionnalité
 ![Image text](/asset/git/animation_interface.gif)
 
 ## OCR utilisé <a name="ocr"></a>
