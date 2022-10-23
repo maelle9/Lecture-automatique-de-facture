@@ -22,13 +22,28 @@ Nos objectifs:
 
 ## Sommaire
 1. [Démonstration](#demo)
-2. [OCR utilisé](#ocr)
-3. [Librairies principales utilisées](#lib)
-4. [Précision](#accuracy)
+2. [Traitement](#traitement)
+3. [OCR utilisé](#ocr)
+4. [Librairies principales utilisées](#lib)
+5. [Précision](#accuracy)
 
 
 ## Démonstration <a name="demo"></a>
-![Image text](/asset/git/interfaceGIF.gif)
+![Image text](asset/git/interfaceGIF.gif)
+
+
+## Traitement étapes <a name="traitement"></a>
+
+| Images | Traitements appliqués |
+| --- | --- |
+|![Image text](asset/git/1.png) | Ajout bordures |
+|![Image text](asset/git/2.png) | Filtre |
+|![Image text](asset/git/3.png) | Traitement |
+|![Image text](asset/git/4.png) | Extraction contours |
+|![Image text](asset/git/5.png) | Détection facture |
+|![Image text](asset/git/6.png) | Recadrage + Redressement |
+|![Image text](asset/git/7.png) | Traitement + OCR |
+
 
 ## OCR utilisé <a name="ocr"></a>
 Pyteserract et PaddleOCR
