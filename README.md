@@ -34,15 +34,7 @@ Nos objectifs:
 
 ## Traitement étapes <a name="traitement"></a>
 
-| Images | Traitements appliqués |
-| --- | --- |
-|![Image text](asset/git/1.png) | Ajout bordures |
-|![Image text](asset/git/2.png) | Filtre |
-|![Image text](asset/git/3.png) | Traitement |
-|![Image text](asset/git/4.png) | Extraction contours |
-|![Image text](asset/git/5.png) | Détection facture |
-|![Image text](asset/git/6.png) | Recadrage + Redressement |
-|![Image text](asset/git/7.png) | Traitement + OCR |
+![Image text](asset/git/traitement.jpg)
 
 
 ## OCR utilisé <a name="ocr"></a>
